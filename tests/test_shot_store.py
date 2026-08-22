@@ -256,3 +256,38 @@ async def test_relocation_rerun_keeps_moved_chunks(hass, hass_storage):
     shots = await store.async_get_shots([payload["start_time"]])
     assert shots == [{**payload, "shot_id": payload["start_time"]}]
     assert not any(k.startswith(f"{XENIA_DOMAIN}.") for k in hass_storage)
+
+
+async def test_corrupt_flat_index_leaves_files_and_starts_empty(hass, hass_storage):
+    payload = shot_payload()
+    _seed_flat_layout(hass_storage, payload)
+    flat_index_key = f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_index"
+
+    real_load = Store.async_load
+
+    async def load(self):
+        if self.key == flat_index_key:
+            raise OSError("corrupt")
+        return await real_load(self)
+
+    with patch.object(Store, "async_load", load):
+        store = await _loaded_store(hass)
+
+    assert store.list_shots() == []
+    # the unreadable flat files stay untouched for manual recovery
+    assert flat_index_key in hass_storage
+
+    # the store is usable and writes to the folder layout
+    await store.async_add_shot(payload)
+    assert [s["shot_id"] for s in store.list_shots()] == [payload["start_time"]]
+    assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_index" in hass_storage
+
+
+async def test_malformed_flat_index_is_tolerated(hass, hass_storage):
+    flat_index_key = f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_index"
+    hass_storage[flat_index_key] = _flat_storage_entry(flat_index_key, {"bogus": 1})
+
+    store = await _loaded_store(hass)
+
+    assert store.list_shots() == []
+    assert flat_index_key in hass_storage

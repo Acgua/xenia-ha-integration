@@ -45,7 +45,12 @@ class XeniaShotStore:
             _LOGGER.exception("Shot index unreadable; starting with empty history")
             return
         if data is None:
-            data = await self._async_relocate_flat_layout()
+            try:
+                data = await self._async_relocate_flat_layout()
+            except Exception:
+                _LOGGER.exception(
+                    "Relocating flat shot storage failed; starting with empty history"
+                )
         if data is not None:
             self._index = data
 
