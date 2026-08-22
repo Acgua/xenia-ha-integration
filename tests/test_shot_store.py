@@ -93,7 +93,7 @@ async def test_delete_removes_only_target_and_persists(hass):
     assert [s["shot_id"] for s in reloaded.list_shots()] == [keep["start_time"]]
 
 
-async def test_remove_deletes_everything(hass):
+async def test_remove_deletes_everything(hass, hass_storage):
     store = await _loaded_store(hass)
     await store.async_add_shot(shot_payload("2026-06-15T08:00:00.000+00:00"))
     await store.async_add_shot(shot_payload("2026-07-01T10:00:00.000+00:00"))
@@ -101,6 +101,7 @@ async def test_remove_deletes_everything(hass):
 
     reloaded = await _loaded_store(hass)
     assert reloaded.list_shots() == []
+    assert not any(k.startswith(f"{XENIA_DOMAIN}/") for k in hass_storage)
 
 
 async def test_entries_are_isolated(hass):
@@ -296,3 +297,25 @@ async def test_malformed_flat_index_is_tolerated(hass, hass_storage):
     await store.async_add_shot(payload)
     assert [s["shot_id"] for s in store.list_shots()] == [payload["start_time"]]
     assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_index" in hass_storage
+
+
+async def test_corrupt_flat_chunk_relocates_as_empty(hass, hass_storage):
+    june = shot_payload("2026-06-15T08:00:00.000+00:00")
+    july = shot_payload("2026-07-01T10:00:00.000+00:00")
+    _seed_flat_layout(hass_storage, june, july)
+    flat_june_key = f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_2026-06"
+
+    real_load = Store.async_load
+
+    async def load(self):
+        if self.key == flat_june_key:
+            raise OSError("corrupt")
+        return await real_load(self)
+
+    with patch.object(Store, "async_load", load):
+        store = await _loaded_store(hass)
+
+    # relocation completed: the corrupt month is empty, the other intact
+    shots = await store.async_get_shots([june["start_time"], july["start_time"]])
+    assert [s["shot_id"] for s in shots] == [july["start_time"]]
+    assert not any(k.startswith(f"{XENIA_DOMAIN}.") for k in hass_storage)
