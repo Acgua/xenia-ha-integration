@@ -291,3 +291,8 @@ async def test_malformed_flat_index_is_tolerated(hass, hass_storage):
 
     assert store.list_shots() == []
     assert flat_index_key in hass_storage
+
+    payload = shot_payload()
+    await store.async_add_shot(payload)
+    assert [s["shot_id"] for s in store.list_shots()] == [payload["start_time"]]
+    assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_index" in hass_storage
