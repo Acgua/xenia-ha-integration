@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from homeassistant.helpers.storage import Store
 
+from custom_components.xenia_home.const import XENIA_DOMAIN
 from custom_components.xenia_home.shot_store import XeniaShotStore
 from tests.fixtures.shots import shot_payload
 
@@ -166,3 +167,12 @@ async def test_delete_last_shot_of_month_removes_chunk_file(hass):
     assert [s["shot_id"] for s in reloaded.list_shots()] == [july["start_time"]]
     shots = await reloaded.async_get_shots([july["start_time"], june["start_time"]])
     assert [s["shot_id"] for s in shots] == [july["start_time"]]
+
+
+async def test_files_live_in_domain_folder(hass, hass_storage):
+    store = await _loaded_store(hass)
+    await store.async_add_shot(shot_payload())
+
+    assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_index" in hass_storage
+    assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_2026-07" in hass_storage
+    assert not any(k.startswith(f"{XENIA_DOMAIN}.") for k in hass_storage)

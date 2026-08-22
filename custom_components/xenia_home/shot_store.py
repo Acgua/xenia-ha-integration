@@ -30,7 +30,7 @@ class XeniaShotStore:
         self._hass = hass
         self._entry_id = entry_id
         self._index_store: Store[dict[str, Any]] = Store(
-            hass, STORAGE_VERSION, f"{XENIA_DOMAIN}.{entry_id}.shots_index"
+            hass, STORAGE_VERSION, f"{XENIA_DOMAIN}/{entry_id}.shots_index"
         )
         self._index: dict[str, Any] = {"migrated": False, "shots": []}
         self._chunks: dict[str, dict[str, Any]] = {}
@@ -64,7 +64,7 @@ class XeniaShotStore:
             Store(
                 self._hass,
                 STORAGE_VERSION,
-                f"{XENIA_DOMAIN}.{self._entry_id}.shots_{month}",
+                f"{XENIA_DOMAIN}/{self._entry_id}.shots_{month}",
             ),
         )
 
