@@ -176,3 +176,65 @@ async def test_files_live_in_domain_folder(hass, hass_storage):
     assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_index" in hass_storage
     assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_2026-07" in hass_storage
     assert not any(k.startswith(f"{XENIA_DOMAIN}.") for k in hass_storage)
+
+
+def _flat_storage_entry(key: str, data: dict) -> dict:
+    return {"version": 1, "minor_version": 1, "key": key, "data": data}
+
+
+def _seed_flat_layout(hass_storage, *payloads) -> None:
+    """Write a v0.7.0-beta.1 flat file layout for the given shots."""
+    shots = []
+    chunks: dict[str, dict] = {}
+    for payload in payloads:
+        month = payload["start_time"][:7]
+        chunks.setdefault(month, {})[payload["start_time"]] = payload
+        shots.append(
+            {
+                "shot_id": payload["start_time"],
+                "start_time": payload["start_time"],
+                "brew_end_time": payload["brew_end_time"],
+                "duration_seconds": payload["duration_seconds"],
+                "final_weight_g": payload["weights"][-1],
+                "month": month,
+            }
+        )
+    index_key = f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_index"
+    hass_storage[index_key] = _flat_storage_entry(
+        index_key, {"migrated": True, "shots": shots}
+    )
+    for month, chunk in chunks.items():
+        chunk_key = f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_{month}"
+        hass_storage[chunk_key] = _flat_storage_entry(chunk_key, chunk)
+
+
+async def test_flat_beta_layout_is_relocated(hass, hass_storage):
+    june = shot_payload("2026-06-15T08:00:00.000+00:00")
+    july = shot_payload("2026-07-01T10:00:00.000+00:00")
+    _seed_flat_layout(hass_storage, june, july)
+
+    store = await _loaded_store(hass)
+
+    # history is intact and the recorder import will not run again
+    assert [s["shot_id"] for s in store.list_shots()] == [
+        july["start_time"],
+        june["start_time"],
+    ]
+    shots = await store.async_get_shots([june["start_time"]])
+    assert shots == [{**june, "shot_id": june["start_time"]}]
+    assert store.migrated is True
+
+    # flat files are gone, folder files exist
+    assert not any(k.startswith(f"{XENIA_DOMAIN}.") for k in hass_storage)
+    assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_index" in hass_storage
+    assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_2026-06" in hass_storage
+    assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_2026-07" in hass_storage
+
+
+async def test_relocation_runs_once(hass, hass_storage):
+    payload = shot_payload()
+    _seed_flat_layout(hass_storage, payload)
+    await _loaded_store(hass)
+
+    reloaded = await _loaded_store(hass)
+    assert [s["shot_id"] for s in reloaded.list_shots()] == [payload["start_time"]]

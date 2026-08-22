@@ -43,9 +43,44 @@ class XeniaShotStore:
             data = await self._index_store.async_load()
         except Exception:
             _LOGGER.exception("Shot index unreadable; starting with empty history")
-            data = None
+            return
+        if data is None:
+            data = await self._async_relocate_flat_layout()
         if data is not None:
             self._index = data
+
+    def _flat_store(self, suffix: str) -> Store[dict[str, Any]]:
+        # Storage keys used up to v0.7.0-beta.1, before the domain folder.
+        return Store(
+            self._hass, STORAGE_VERSION, f"{XENIA_DOMAIN}.{self._entry_id}.{suffix}"
+        )
+
+    async def _async_relocate_flat_layout(self) -> dict[str, Any] | None:
+        """Move flat pre-folder storage files into the domain folder."""
+        old_index_store = self._flat_store("shots_index")
+        try:
+            index = await old_index_store.async_load()
+        except Exception:
+            _LOGGER.exception(
+                "Flat shot index unreadable; starting with empty history"
+            )
+            return None
+        if index is None:
+            return None
+        for month in {s["month"] for s in index["shots"]}:
+            old_chunk_store = self._flat_store(f"shots_{month}")
+            try:
+                chunk = await old_chunk_store.async_load() or {}
+            except Exception:
+                _LOGGER.exception(
+                    "Flat shot chunk %s unreadable; relocating as empty", month
+                )
+                chunk = {}
+            await self._chunk_store(month).async_save(chunk)
+            await old_chunk_store.async_remove()
+        await self._index_store.async_save(index)
+        await old_index_store.async_remove()
+        return index
 
     @property
     def migrated(self) -> bool:
