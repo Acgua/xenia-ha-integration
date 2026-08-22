@@ -70,12 +70,14 @@ class XeniaShotStore:
         for month in {s["month"] for s in index["shots"]}:
             old_chunk_store = self._flat_store(f"shots_{month}")
             try:
-                chunk = await old_chunk_store.async_load() or {}
+                chunk = await old_chunk_store.async_load()
             except Exception:
                 _LOGGER.exception(
                     "Flat shot chunk %s unreadable; relocating as empty", month
                 )
                 chunk = {}
+            if chunk is None:
+                continue
             await self._chunk_store(month).async_save(chunk)
             await old_chunk_store.async_remove()
         await self._index_store.async_save(index)

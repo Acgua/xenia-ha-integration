@@ -238,3 +238,21 @@ async def test_relocation_runs_once(hass, hass_storage):
 
     reloaded = await _loaded_store(hass)
     assert [s["shot_id"] for s in reloaded.list_shots()] == [payload["start_time"]]
+
+
+async def test_relocation_rerun_keeps_moved_chunks(hass, hass_storage):
+    """A crash between chunk move and index save must not lose payloads."""
+    payload = shot_payload()
+    _seed_flat_layout(hass_storage, payload)
+    month = payload["start_time"][:7]
+    flat_chunk_key = f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_{month}"
+    folder_chunk_key = f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_{month}"
+    hass_storage[folder_chunk_key] = _flat_storage_entry(
+        folder_chunk_key, hass_storage.pop(flat_chunk_key)["data"]
+    )
+
+    store = await _loaded_store(hass)
+
+    shots = await store.async_get_shots([payload["start_time"]])
+    assert shots == [{**payload, "shot_id": payload["start_time"]}]
+    assert not any(k.startswith(f"{XENIA_DOMAIN}.") for k in hass_storage)
