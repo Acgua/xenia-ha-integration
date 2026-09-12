@@ -1,5 +1,7 @@
 """Tests for select.py — power-on-behavior, script, and switch-config selects."""
 
+from unittest.mock import patch
+
 from homeassistant.exceptions import ServiceValidationError
 import pytest
 
@@ -37,7 +39,7 @@ async def test_power_on_behavior_defaults_to_steam_off(hass, init_integration):
     assert state.state == PowerOnBehavior.STEAM_OFF.value
 
 
-async def test_power_on_behavior_reads_saved_option(
+async def test_power_on_behavior_option_is_migrated_and_removed(
     hass,
     enable_custom_integrations,
     mock_xenia_api,
@@ -51,17 +53,37 @@ async def test_power_on_behavior_reads_saved_option(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert hass.states.get(POBE).state == PowerOnBehavior.STEAM_ON.value
+    assert CONF_POWER_ON_BEHAVIOR not in entry.options
 
 
-async def test_power_on_behavior_select_updates_entry_options(hass, init_integration):
+async def test_power_on_behavior_select_changes_state_without_reload(
+    hass, init_integration
+):
+    with patch.object(
+        hass.config_entries, "async_reload", wraps=hass.config_entries.async_reload
+    ) as reload:
+        await hass.services.async_call(
+            "select",
+            "select_option",
+            {"entity_id": POBE, "option": PowerOnBehavior.STEAM_ON},
+            blocking=True,
+        )
+        await hass.async_block_till_done()
+    assert hass.states.get(POBE).state == PowerOnBehavior.STEAM_ON.value
+    assert CONF_POWER_ON_BEHAVIOR not in init_integration.options
+    reload.assert_not_called()
+
+
+async def test_power_on_behavior_survives_reload(hass, init_integration):
     await hass.services.async_call(
         "select",
         "select_option",
         {"entity_id": POBE, "option": PowerOnBehavior.STEAM_ON},
         blocking=True,
     )
+    await hass.config_entries.async_reload(init_integration.entry_id)
     await hass.async_block_till_done()
-    assert init_integration.options[CONF_POWER_ON_BEHAVIOR] == PowerOnBehavior.STEAM_ON
+    assert hass.states.get(POBE).state == PowerOnBehavior.STEAM_ON.value
 
 
 async def test_power_on_behavior_invalid_option_raises(hass, init_integration):

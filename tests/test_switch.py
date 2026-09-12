@@ -2,12 +2,22 @@
 
 import pytest
 
-from custom_components.xenia_home.const import CONF_POWER_ON_BEHAVIOR, PowerOnBehavior
+from custom_components.xenia_home.const import PowerOnBehavior
 from custom_components.xenia_home.xenia import MachineStatus, SteamBoilerStatus
 
 POWER = "switch.xenia_espresso_machine_power"
 ECO = "switch.xenia_espresso_machine_eco_mode"
 STEAM_BOILER = "switch.xenia_espresso_machine_steam_boiler_power"
+POWER_ON_BEHAVIOR = "select.xenia_espresso_machine_power_on_behavior"
+
+
+async def _select_power_on_behavior(hass, option: PowerOnBehavior) -> None:
+    await hass.services.async_call(
+        "select",
+        "select_option",
+        {"entity_id": POWER_ON_BEHAVIOR, "option": option},
+        blocking=True,
+    )
 
 
 async def test_switch_entities_snapshot(
@@ -59,19 +69,10 @@ async def test_power_switch_state(
 
 
 async def test_power_switch_turn_on_steam_on_calls_machine_on(
-    hass,
-    enable_custom_integrations,
-    mock_xenia_api,
-    mock_config_entry_factory_with_options,
+    hass, init_integration, mock_xenia_api
 ):
-    entry = mock_config_entry_factory_with_options(
-        {CONF_POWER_ON_BEHAVIOR: PowerOnBehavior.STEAM_ON}
-    )
+    await _select_power_on_behavior(hass, PowerOnBehavior.STEAM_ON)
     mock_xenia_api.expect_machine_control()
-    mock_xenia_api.register()
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
     await hass.services.async_call(
         "switch", "turn_on", {"entity_id": POWER}, blocking=True
     )
@@ -81,19 +82,10 @@ async def test_power_switch_turn_on_steam_on_calls_machine_on(
 
 
 async def test_power_switch_turn_on_steam_off_calls_on_sb_off(
-    hass,
-    enable_custom_integrations,
-    mock_xenia_api,
-    mock_config_entry_factory_with_options,
+    hass, init_integration, mock_xenia_api
 ):
-    entry = mock_config_entry_factory_with_options(
-        {CONF_POWER_ON_BEHAVIOR: PowerOnBehavior.STEAM_OFF}
-    )
+    await _select_power_on_behavior(hass, PowerOnBehavior.STEAM_OFF)
     mock_xenia_api.expect_machine_control()
-    mock_xenia_api.register()
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
     await hass.services.async_call(
         "switch", "turn_on", {"entity_id": POWER}, blocking=True
     )
@@ -169,20 +161,15 @@ async def test_eco_switch_turn_on_calls_machine_set_eco(
 
 
 async def test_eco_switch_turn_off_steam_off_calls_on_sb_off(
-    hass,
-    enable_custom_integrations,
-    mock_xenia_api,
-    mock_config_entry_factory_with_options,
+    hass, enable_custom_integrations, mock_xenia_api, mock_config_entry
 ):
-    entry = mock_config_entry_factory_with_options(
-        {CONF_POWER_ON_BEHAVIOR: PowerOnBehavior.STEAM_OFF}
-    )
     mock_xenia_api.set_overview(MA_STATUS=int(MachineStatus.ECO))
     mock_xenia_api.expect_machine_control()
     mock_xenia_api.register()
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
+    mock_config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done()
+    await _select_power_on_behavior(hass, PowerOnBehavior.STEAM_OFF)
     await hass.services.async_call(
         "switch", "turn_off", {"entity_id": ECO}, blocking=True
     )

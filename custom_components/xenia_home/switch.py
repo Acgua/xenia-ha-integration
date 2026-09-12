@@ -5,12 +5,7 @@ from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import (
-    CONF_POWER_ON_BEHAVIOR,
-    DEFAULT_POWER_ON_BEHAVIOR,
-    XENIA_DOMAIN,
-    PowerOnBehavior,
-)
+from .const import XENIA_DOMAIN, PowerOnBehavior
 from .coordinator import XeniaConfigEntry, XeniaDataUpdateCoordinator
 from .entity import XeniaEntity
 from .xenia import MachineStatus, SteamBoilerStatus
@@ -59,9 +54,7 @@ class XeniaPowerSwitch(XeniaEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn the machine on, respecting the configured power-on behaviour."""
-        behavior = self.coordinator.config_entry.options.get(
-            CONF_POWER_ON_BEHAVIOR, DEFAULT_POWER_ON_BEHAVIOR
-        )
+        behavior = self.runtime_data.power_on_behavior
         if behavior == PowerOnBehavior.STEAM_ON:
             await self.coordinator.xenia.machine_turn_on()
         elif behavior == PowerOnBehavior.STEAM_OFF:
@@ -108,9 +101,7 @@ class XeniaEcoSwitch(XeniaEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs) -> None:
         """Leave eco mode by re-applying the configured power-on behaviour."""
-        behavior = self.coordinator.config_entry.options.get(
-            CONF_POWER_ON_BEHAVIOR, DEFAULT_POWER_ON_BEHAVIOR
-        )
+        behavior = self.runtime_data.power_on_behavior
         if behavior == PowerOnBehavior.STEAM_ON:
             await self.coordinator.xenia.machine_turn_on()
         elif behavior == PowerOnBehavior.STEAM_OFF:

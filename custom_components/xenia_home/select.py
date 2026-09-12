@@ -6,13 +6,9 @@ from homeassistant.components.select import SelectEntity
 from homeassistant.const import CONF_HOST, EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import (
-    CONF_POWER_ON_BEHAVIOR,
-    DEFAULT_POWER_ON_BEHAVIOR,
-    POWER_ON_BEHAVIOR_OPTIONS,
-    XENIA_DOMAIN,
-)
+from .const import POWER_ON_BEHAVIOR_OPTIONS, XENIA_DOMAIN
 from .coordinator import XeniaConfigEntry, XeniaDataUpdateCoordinator
 from .entity import XeniaEntity
 
@@ -70,7 +66,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class PowerOnBehaviorSelect(XeniaEntity, SelectEntity):
+class PowerOnBehaviorSelect(XeniaEntity, SelectEntity, RestoreEntity):
     """Select entity for power on behavior."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -85,22 +81,21 @@ class PowerOnBehaviorSelect(XeniaEntity, SelectEntity):
         )
         self._attr_options = POWER_ON_BEHAVIOR_OPTIONS
 
+    async def async_added_to_hass(self) -> None:
+        """Restore the last selected option."""
+        await super().async_added_to_hass()
+        state = await self.async_get_last_state()
+        if state is not None and state.state in POWER_ON_BEHAVIOR_OPTIONS:
+            self.runtime_data.power_on_behavior = state.state
+
     @property
     def current_option(self) -> str:
         """Return the current selected option."""
-        return self.coordinator.config_entry.options.get(
-            CONF_POWER_ON_BEHAVIOR, DEFAULT_POWER_ON_BEHAVIOR
-        )
+        return self.runtime_data.power_on_behavior
 
     async def async_select_option(self, option: str) -> None:
         """Handle option selection."""
-        if option not in POWER_ON_BEHAVIOR_OPTIONS:
-            return
-        new_opts = dict(self.coordinator.config_entry.options)
-        new_opts[CONF_POWER_ON_BEHAVIOR] = option
-        self.hass.config_entries.async_update_entry(
-            self.coordinator.config_entry, options=new_opts
-        )
+        self.runtime_data.power_on_behavior = option
         self.async_write_ha_state()
 
 
