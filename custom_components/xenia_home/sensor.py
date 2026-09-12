@@ -135,7 +135,7 @@ SENSOR_TYPES: Final[tuple[XeniaSensorEntityDescription, ...]] = (
         exists_fn=lambda data: data.overview.pu_sens_scale_rate is not None,
     ),
     XeniaSensorEntityDescription(
-        key="machine_status",
+        key="status",
         translation_key="status",
         device_class=SensorDeviceClass.ENUM,
         options=[

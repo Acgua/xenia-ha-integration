@@ -440,7 +440,7 @@
     'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'status',
-    'unique_id': 'xenia.local_machine_status',
+    'unique_id': 'xenia.local_status',
     'unit_of_measurement': None,
   })
 # ---
