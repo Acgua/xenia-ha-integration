@@ -84,13 +84,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 async def _async_update_listener(hass: HomeAssistant, entry: XeniaConfigEntry) -> None:
-    """Reload the config entry whenever its options are changed.
-
-    Option values such as the poll intervals are only read once, at
-    entity/coordinator construction time. Without this listener, saving new
-    options would silently have no effect until the next manual reload or
-    restart.
-    """
+    """Reload the entry so changed options and host take effect."""
     await hass.config_entries.async_reload(entry.entry_id)
 
 

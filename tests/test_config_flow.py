@@ -1,5 +1,7 @@
 """Tests for config_flow.py — config and options flows."""
 
+from unittest.mock import patch
+
 from homeassistant import config_entries, data_entry_flow
 import pytest
 
@@ -107,12 +109,17 @@ async def test_reconfigure_updates_host_on_success(
     )
 
     result = await mock_config_entry.start_reconfigure_flow(hass)
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={"host": "  new.host  "}
-    )
+    with patch.object(
+        hass.config_entries, "async_reload", wraps=hass.config_entries.async_reload
+    ) as reload:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={"host": "  new.host  "}
+        )
+        await hass.async_block_till_done()
     assert result["type"] == data_entry_flow.FlowResultType.ABORT
     assert result["reason"] == "reconfigure_successful"
     assert mock_config_entry.data["host"] == "new.host"
+    reload.assert_called_once_with(mock_config_entry.entry_id)
 
 
 async def test_reconfigure_shows_error_on_connection_failure(

@@ -102,7 +102,6 @@ class XeniaConfigFlow(ConfigFlow, domain=XENIA_DOMAIN):
                 CONF_HOST: self._host,
             },
         )
-        await self.hass.config_entries.async_reload(self._entry.entry_id)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
