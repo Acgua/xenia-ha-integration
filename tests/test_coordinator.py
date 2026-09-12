@@ -181,9 +181,9 @@ async def test_data_coordinator_raises_update_failed_on_single_error() -> None:
 # ===========================================================================
 
 
-def _data(status: MachineStatus, shot_start_time=None) -> XeniaCoordinatorData:
+def _data(shot_start_time: datetime | None = None) -> XeniaCoordinatorData:
     return XeniaCoordinatorData(
-        overview=XeniaOverviewData.from_dict({"MA_STATUS": int(status)}),
+        overview=XeniaOverviewData.from_dict({}),
         overview_single=XeniaOverviewSingleData.from_dict({}),
         shot_start_time=shot_start_time,
     )
@@ -195,28 +195,21 @@ async def test_shot_start_time_is_none_when_not_brewing() -> None:
     assert result.shot_start_time is None
 
 
-async def test_shot_start_time_is_set_when_brewing_begins() -> None:
+@pytest.mark.parametrize("previous", [None, _data()])
+async def test_shot_start_time_is_set_when_brewing_begins(previous) -> None:
     xenia = _make_xenia_mock(overview={"MA_STATUS": int(MachineStatus.BREWING)})
     coordinator = _make_data_coordinator(xenia=xenia)
-    coordinator.data = _data(MachineStatus.ON)
+    coordinator.data = previous
     before = datetime.now(UTC)
     result = await coordinator._async_update_data()
-    assert result.shot_start_time is not None
     assert before <= result.shot_start_time <= datetime.now(UTC)
-
-
-async def test_shot_start_time_is_set_on_first_refresh_while_brewing() -> None:
-    xenia = _make_xenia_mock(overview={"MA_STATUS": int(MachineStatus.BREWING)})
-    coordinator = _make_data_coordinator(xenia=xenia)
-    result = await coordinator._async_update_data()
-    assert result.shot_start_time is not None
 
 
 async def test_shot_start_time_is_kept_while_brewing() -> None:
     xenia = _make_xenia_mock(overview={"MA_STATUS": int(MachineStatus.BREWING)})
     coordinator = _make_data_coordinator(xenia=xenia)
     started = datetime(2026, 9, 12, 10, 0, tzinfo=UTC)
-    coordinator.data = _data(MachineStatus.BREWING, started)
+    coordinator.data = _data(started)
     result = await coordinator._async_update_data()
     assert result.shot_start_time == started
 
@@ -225,7 +218,7 @@ async def test_shot_start_time_is_cleared_when_brewing_ends() -> None:
     xenia = _make_xenia_mock(overview={"MA_STATUS": int(MachineStatus.DRAINING)})
     coordinator = _make_data_coordinator(xenia=xenia)
     started = datetime(2026, 9, 12, 10, 0, tzinfo=UTC)
-    coordinator.data = _data(MachineStatus.BREWING, started)
+    coordinator.data = _data(started)
     result = await coordinator._async_update_data()
     assert result.shot_start_time is None
 

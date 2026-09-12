@@ -36,7 +36,6 @@ blueprint:
             device_class: pressure
     timer_helper:
       name: Shot timer helper
-      description: The number helper that receives the seconds.
       selector:
         entity:
           filter:
@@ -89,10 +88,7 @@ actions:
       counted_from: >-
         {{ now() if start_pressure > 0 else states(start_time_sensor) }}
   - repeat:
-      while:
-        - condition: state
-          entity_id: !input status_sensor
-          state: brewing
+      while: "{{ is_state(status_sensor, 'brewing') }}"
       sequence:
         - action: input_number.set_value
           target:

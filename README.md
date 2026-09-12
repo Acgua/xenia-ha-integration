@@ -123,8 +123,8 @@ tracker event carries the final `duration_seconds` once the shot is done.
 The start is the moment Home Assistant first saw the shot, so a shot that
 is already running when the integration loads is timed from the load.
 
-For a live timer without any helper, add the sensor to an entities card
-with `time_format: total`. The card counts up every second on its own:
+An entities card with `time_format: total` counts up on its own, no
+helper needed:
 
 ```yaml
 type: entities
@@ -165,21 +165,16 @@ cards:
           suffix: s
 ```
 
-For a gauge, a tile, or a value that stays visible for a while after the
-shot, use the shot timer blueprint. It writes the seconds into a number
-helper that any card can show:
+For a gauge or tile, or to keep the value visible after the shot, use the
+shot timer blueprint: it writes the seconds into a number helper.
 
 1. Create a number helper under Settings > Devices & services > Helpers
    (minimum 0, maximum 100, step 1).
 2. Import the blueprint:
    [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FKnoedelauflauf%2Fxenia-home%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fxenia_home%2Fshot_timer.yaml)
-3. Create an automation from it and pick the machine status, shot start
-   time and pump pressure sensors plus the helper. Optional: how long the
-   final value stays before resetting to 0 (default 30 s), and a pump
-   pressure above which counting starts (default 0, counts from the start
-   of the shot).
+3. Create an automation from it and pick the three sensors and the helper.
 
-To keep the helper out of the recorder, exclude it in `configuration.yaml`:
+The helper changes every second; keep it out of the recorder:
 
 ```yaml
 recorder:

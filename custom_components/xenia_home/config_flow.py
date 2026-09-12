@@ -93,16 +93,6 @@ class XeniaConfigFlow(ConfigFlow, domain=XENIA_DOMAIN):
             data={CONF_HOST: self._host},
         )
 
-    async def _update_entry(self) -> None:
-        assert self._entry is not None
-        assert self._host is not None
-        self.hass.config_entries.async_update_entry(
-            self._entry,
-            data={
-                CONF_HOST: self._host,
-            },
-        )
-
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -149,8 +139,10 @@ class XeniaConfigFlow(ConfigFlow, domain=XENIA_DOMAIN):
             new_host = user_input[CONF_HOST].strip()
             error = await self._async_test_connection(self.hass, new_host)
             if error is None:
-                self._host = new_host
-                await self._update_entry()
+                assert self._entry is not None
+                self.hass.config_entries.async_update_entry(
+                    self._entry, data={CONF_HOST: new_host}
+                )
                 return self.async_abort(reason="reconfigure_successful")
             errors["base"] = error
 

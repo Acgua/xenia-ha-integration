@@ -84,7 +84,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 async def _async_update_listener(hass: HomeAssistant, entry: XeniaConfigEntry) -> None:
-    """Reload the entry so changed options and host take effect."""
+    """Reload on an options or host change."""
     await hass.config_entries.async_reload(entry.entry_id)
 
 

@@ -1,11 +1,8 @@
-"""Tests for sensor.py — sensor entities (ten on old firmware, eleven on 4.159+)."""
-
-from datetime import UTC, datetime
+"""Tests for sensor.py — sensor entities."""
 
 from homeassistant.util import dt as dt_util
 import pytest
 
-from custom_components.xenia_home.coordinator import XeniaCoordinatorData
 from tests.fixtures.api_responses import OVERVIEW_NEW_FW_FIELDS
 
 
@@ -113,24 +110,6 @@ async def test_scale_flow_rate_sensor_created_on_new_firmware(
 
 async def test_scale_flow_rate_sensor_absent_on_old_firmware(hass, init_integration):
     assert hass.states.get("sensor.xenia_espresso_machine_scale_flow_rate") is None
-
-
-async def test_shot_start_time_sensor_reports_start_of_running_shot(
-    hass, init_integration
-):
-    coordinator = init_integration.runtime_data.coordinator
-    started = datetime(2026, 9, 12, 10, 0, tzinfo=UTC)
-    coordinator.async_set_updated_data(
-        XeniaCoordinatorData(
-            overview=coordinator.data.overview,
-            overview_single=coordinator.data.overview_single,
-            shot_start_time=started,
-        )
-    )
-    await hass.async_block_till_done()
-    state = hass.states.get("sensor.xenia_espresso_machine_shot_start_time")
-    assert state.state == "2026-09-12T10:00:00+00:00"
-    assert state.attributes["device_class"] == "timestamp"
 
 
 async def test_status_and_shot_start_time_while_brewing(
