@@ -131,6 +131,38 @@ entities:
     time_format: total
 ```
 
+To show the running timer only while brewing and the duration of the last
+shot otherwise, stack two conditional cards:
+
+```yaml
+type: vertical-stack
+cards:
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: sensor.xenia_espresso_machine_machine_status
+        state: brewing
+    card:
+      type: entities
+      entities:
+        - entity: sensor.xenia_espresso_machine_shot_start_time
+          name: Shot
+          time_format: total
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: sensor.xenia_espresso_machine_machine_status
+        state_not: brewing
+    card:
+      type: entities
+      entities:
+        - type: attribute
+          entity: event.xenia_espresso_machine_shot_tracker
+          attribute: duration_seconds
+          name: Last shot
+          suffix: s
+```
+
 For a gauge, a tile, or a value that stays visible for a while after the
 shot, use the shot timer blueprint. It writes the seconds into a number
 helper that any card can show:
