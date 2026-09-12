@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Final
 
 from homeassistant.components.sensor import (
@@ -29,6 +30,7 @@ from .coordinator import (
     XeniaDataUpdateCoordinator,
 )
 from .entity import XeniaEntity
+from .xenia import MachineStatus
 
 PARALLEL_UPDATES = 0
 
@@ -37,7 +39,7 @@ PARALLEL_UPDATES = 0
 class XeniaEntityDescriptionMixinSensor:
     """Mixin adding a value extractor to a sensor description."""
 
-    value_fn: Callable[[XeniaCoordinatorData], StateType]
+    value_fn: Callable[[XeniaCoordinatorData], StateType | datetime]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -132,6 +134,28 @@ SENSOR_TYPES: Final[tuple[XeniaSensorEntityDescription, ...]] = (
         value_fn=lambda data: data.overview.pu_sens_scale_rate,
         exists_fn=lambda data: data.overview.pu_sens_scale_rate is not None,
     ),
+    XeniaSensorEntityDescription(
+        key="status",
+        translation_key="status",
+        device_class=SensorDeviceClass.ENUM,
+        options=[
+            status.name.lower()
+            for status in MachineStatus
+            if status is not MachineStatus.UNKNOWN
+        ],
+        icon="mdi:coffee-maker",
+        value_fn=lambda data: (
+            None
+            if data.overview.ma_status is MachineStatus.UNKNOWN
+            else data.overview.ma_status.name.lower()
+        ),
+    ),
+    XeniaSensorEntityDescription(
+        key="shot_start_time",
+        translation_key="shot_start_time",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=lambda data: data.shot_start_time,
+    ),
 )
 
 
@@ -165,7 +189,7 @@ class XeniaSensor(XeniaEntity, SensorEntity):
         )
 
     @property
-    def native_value(self) -> StateType:
+    def native_value(self) -> StateType | datetime:
         """Return the sensor value, or None for zeroed cumulative counters."""
         value = self.entity_description.value_fn(self.coordinator.data)
         if (

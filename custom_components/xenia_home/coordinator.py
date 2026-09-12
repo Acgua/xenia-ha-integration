@@ -1,13 +1,14 @@
 """Data update coordinators for the Xenia espresso machine."""
 
 from dataclasses import dataclass, field
-from datetime import timedelta
+from datetime import datetime, timedelta
 import logging
 
 from aiohttp import ClientError
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_MANAGED_SCRIPT_ID,
@@ -49,6 +50,7 @@ class XeniaCoordinatorData:
 
     overview: XeniaOverviewData
     overview_single: XeniaOverviewSingleData
+    shot_start_time: datetime | None = None
 
 
 @dataclass
@@ -138,7 +140,12 @@ class XeniaDataUpdateCoordinator(DataUpdateCoordinator[XeniaCoordinatorData]):
             case _:
                 self.update_interval = self._interval_idle
 
-        return XeniaCoordinatorData(overview, overview_single)
+        shot_start_time = None
+        if overview.ma_status == MachineStatus.BREWING:
+            previous = self.data.shot_start_time if self.data is not None else None
+            shot_start_time = previous or dt_util.utcnow()
+
+        return XeniaCoordinatorData(overview, overview_single, shot_start_time)
 
 
 class XeniaConfigCoordinator(DataUpdateCoordinator[XeniaConfigData]):

@@ -108,10 +108,80 @@ reason to.
 - Live sensors for temperatures, pressures, electric current, total energy, extractions, and operating hours
 - Scale flow rate sensor (g/s) on firmware that reports it
 - Water tank level monitoring
+- Status sensor (off/on/eco/brewing/draining)
+- Shot start time sensor, set while a shot is brewing (see **Shot timer** below)
 - Trigger any on-device script from Home Assistant (by ID or by name)
 - Map each of the six physical switch positions to a script
 - Shot tracking with per-shot temperature, pressure, flow rate, and final weight
 - Optional weight-target management for a chosen script (see **Options** above)
+
+## Shot timer
+
+The integration does not count seconds itself. The shot start time sensor
+holds the start of the running shot and is `unknown` otherwise; the shot
+tracker event carries the final `duration_seconds` once the shot is done.
+The start is the moment Home Assistant first saw the shot, so a shot that
+is already running when the integration loads is timed from the load.
+
+An entities card with `time_format: total` counts up on its own, no
+helper needed:
+
+```yaml
+type: entities
+entities:
+  - entity: sensor.xenia_espresso_machine_shot_start_time
+    time_format: total
+```
+
+To show the running timer only while brewing and the duration of the last
+shot otherwise, stack two conditional cards:
+
+```yaml
+type: vertical-stack
+cards:
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: sensor.xenia_espresso_machine_status
+        state: brewing
+    card:
+      type: entities
+      entities:
+        - entity: sensor.xenia_espresso_machine_shot_start_time
+          name: Shot
+          time_format: total
+  - type: conditional
+    conditions:
+      - condition: state
+        entity: sensor.xenia_espresso_machine_status
+        state_not: brewing
+    card:
+      type: entities
+      entities:
+        - type: attribute
+          entity: event.xenia_espresso_machine_shot_tracker
+          attribute: duration_seconds
+          name: Last shot
+          suffix: s
+```
+
+For a gauge or tile, or to keep the value visible after the shot, use the
+shot timer blueprint: it writes the seconds into a number helper.
+
+1. Create a number helper under Settings > Devices & services > Helpers
+   (minimum 0, maximum 100, step 1).
+2. Import the blueprint:
+   [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FKnoedelauflauf%2Fxenia-home%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fxenia_home%2Fshot_timer.yaml)
+3. Create an automation from it and pick the three sensors and the helper.
+
+The helper changes every second; keep it out of the recorder:
+
+```yaml
+recorder:
+  exclude:
+    entities:
+      - input_number.xenia_shot_timer
+```
 
 ## Actions
 

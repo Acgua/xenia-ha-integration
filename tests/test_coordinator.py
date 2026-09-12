@@ -81,6 +81,7 @@ def _make_data_coordinator(xenia=None, **options):
     ):
         coordinator = XeniaDataUpdateCoordinator(hass, entry, xenia)
         coordinator.config_entry = entry
+        coordinator.data = None
     return coordinator
 
 

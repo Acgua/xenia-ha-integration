@@ -1,5 +1,7 @@
 """Tests for __init__.py — setup, unload, and the execute_script service."""
 
+from unittest.mock import patch
+
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 import pytest
@@ -10,7 +12,7 @@ from custom_components.xenia_home import (
     ATTR_SCRIPT_NAME,
     SERVICE_EXECUTE_SCRIPT,
 )
-from custom_components.xenia_home.const import XENIA_DOMAIN
+from custom_components.xenia_home.const import CONF_POLL_IDLE, XENIA_DOMAIN
 from custom_components.xenia_home.shot_store import XeniaShotStore
 from tests.fixtures.api_responses import MACHINE_NEW_FW_FIELDS
 from tests.fixtures.shots import shot_payload
@@ -226,3 +228,20 @@ async def test_remove_entry_deletes_shot_storage(hass, init_integration):
     await fresh_store.async_load()
     assert fresh_store.list_shots() == []
     assert fresh_store.migrated is False
+
+
+# ===========================================================================
+# Options update listener
+# ===========================================================================
+
+
+async def test_options_change_reloads_entry(hass, init_integration):
+    with patch.object(
+        hass.config_entries, "async_reload", wraps=hass.config_entries.async_reload
+    ) as reload:
+        hass.config_entries.async_update_entry(
+            init_integration,
+            options={**init_integration.options, CONF_POLL_IDLE: 5.0},
+        )
+        await hass.async_block_till_done()
+    reload.assert_called_once_with(init_integration.entry_id)

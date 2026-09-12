@@ -110,6 +110,19 @@
       },
       "scale_flow_rate": {
         "name": "Waagen-Flussrate"
+      },
+      "status": {
+        "name": "Status",
+        "state": {
+          "off": "Aus",
+          "on": "Ein",
+          "eco": "Eco",
+          "brewing": "Brüht",
+          "draining": "Entleert"
+        }
+      },
+      "shot_start_time": {
+        "name": "Bezugsstart"
       }
     },
     "number": {
