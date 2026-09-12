@@ -109,7 +109,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: XeniaConfigEntry) -> boo
         shot_store=shot_store,
     )
     if CONF_POWER_ON_BEHAVIOR in entry.options:
-        # Releases before 0.8 kept the select value here; strip it before the
+        # Releases before 0.7.0 kept the select value here; strip it before the
         # update listener is added, or this reloads the entry.
         options = dict(entry.options)
         entry.runtime_data.power_on_behavior = options.pop(CONF_POWER_ON_BEHAVIOR)
