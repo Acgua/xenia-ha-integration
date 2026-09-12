@@ -1,4 +1,4 @@
-"""Tests for sensor.py — sensor entities (eight on old firmware, nine on 4.159+)."""
+"""Tests for sensor.py — sensor entities (nine on old firmware, ten on 4.159+)."""
 
 import pytest
 
@@ -13,7 +13,7 @@ async def test_sensor_entities_snapshot(
         for e in entity_registry.entities.values()
         if e.platform == "xenia_home" and e.domain == "sensor"
     )
-    assert len(entity_ids) == 8, f"expected 8 sensors, got {entity_ids}"
+    assert len(entity_ids) == 9, f"expected 9 sensors, got {entity_ids}"
     for entity_id in entity_ids:
         state = hass.states.get(entity_id)
         registry_entry = entity_registry.async_get(entity_id)
