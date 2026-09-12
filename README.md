@@ -109,11 +109,50 @@ reason to.
 - Scale flow rate sensor (g/s) on firmware that reports it
 - Water tank level monitoring
 - Machine status sensor (off/on/eco/brewing/draining/unknown)
-- Shot start time sensor, set while a shot is brewing (an entities card row with `time_format: total` shows a live shot timer; the shot tracker event carries the final `duration_seconds`)
+- Shot start time sensor, set while a shot is brewing (see **Shot timer** below)
 - Trigger any on-device script from Home Assistant (by ID or by name)
 - Map each of the six physical switch positions to a script
 - Shot tracking with per-shot temperature, pressure, flow rate, and final weight
 - Optional weight-target management for a chosen script (see **Options** above)
+
+## Shot timer
+
+The integration does not count seconds itself. The shot start time sensor
+holds the start of the running shot and is `unknown` otherwise; the shot
+tracker event carries the final `duration_seconds` once the shot is done.
+
+For a live timer without any helper, add the sensor to an entities card
+with `time_format: total`. The card counts up every second on its own:
+
+```yaml
+type: entities
+entities:
+  - entity: sensor.xenia_espresso_machine_shot_start_time
+    time_format: total
+```
+
+For a gauge, a tile, or a value that stays visible for a while after the
+shot, use the shot timer blueprint. It writes the seconds into a number
+helper that any card can show:
+
+1. Create a number helper under Settings > Devices & services > Helpers
+   (minimum 0, maximum 100, step 1).
+2. Import the blueprint:
+   [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FKnoedelauflauf%2Fxenia-home%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fxenia_home%2Fshot_timer.yaml)
+3. Create an automation from it and pick the machine status, shot start
+   time and pump pressure sensors plus the helper. Optional: how long the
+   final value stays before resetting to 0 (default 30 s), and a pump
+   pressure above which counting starts (default 0, counts from the start
+   of the shot).
+
+To keep the helper out of the recorder, exclude it in `configuration.yaml`:
+
+```yaml
+recorder:
+  exclude:
+    entities:
+      - input_number.xenia_shot_timer
+```
 
 ## Actions
 
