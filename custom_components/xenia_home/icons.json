@@ -13,6 +13,11 @@
         "default": "mdi:play"
       }
     },
+    "event": {
+      "shot_tracker": {
+        "default": "mdi:coffee"
+      }
+    },
     "select": {
       "power_on_behavior": {
         "default": "mdi:power-settings"

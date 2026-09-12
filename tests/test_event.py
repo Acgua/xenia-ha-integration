@@ -1,7 +1,7 @@
 """Tests for event.py — XeniaShotTracker and ShotData."""
 
 from datetime import timedelta
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 from homeassistant.helpers.entity_component import DATA_INSTANCES
 from homeassistant.util import dt as dt_util
@@ -90,9 +90,7 @@ async def _drive_overview(hass, mock_xenia_api, init_integration, **fields):
     """Let the coordinator poll an overview with the given field overrides."""
     coordinator = init_integration.runtime_data.coordinator
     overview = XeniaOverviewData.from_dict({**mock_xenia_api._overview, **fields})
-    with patch.object(
-        coordinator.xenia, "get_overview", AsyncMock(return_value=overview)
-    ):
+    with patch.object(coordinator.xenia, "get_overview", return_value=overview):
         await coordinator.async_refresh()
     await hass.async_block_till_done()
 
@@ -111,10 +109,24 @@ async def test_tracker_starts_shot_when_brewing_begins(
     hass, init_integration, mock_xenia_api
 ):
     tracker = _get_tracker(hass, init_integration)
+    coordinator = init_integration.runtime_data.coordinator
     assert tracker._is_brewing is False
     await _drive_status(hass, mock_xenia_api, init_integration, MachineStatus.BREWING)
     assert tracker._is_brewing is True
-    assert tracker._shot_start_time is not None
+    assert tracker._shot_start_time == coordinator.data.shot_start_time
+
+
+async def test_new_shot_starts_with_empty_curves(
+    hass, init_integration, mock_xenia_api
+):
+    tracker = _get_tracker(hass, init_integration)
+    tracker._brew_group_temps = [1.0, 2.0]
+    tracker._timestamps = [0.5, 1.5]
+    tracker._brew_end_time = dt_util.utcnow()
+    await _drive_status(hass, mock_xenia_api, init_integration, MachineStatus.BREWING)
+    assert tracker._brew_group_temps == []
+    assert tracker._timestamps == []
+    assert tracker._brew_end_time is None
 
 
 async def test_tracker_starts_afterflow_when_brewing_stops(
@@ -142,21 +154,6 @@ async def test_tracker_cancels_afterflow_on_new_brew(
 # ===========================================================================
 # Direct entity-instance tests for the internal helpers
 # ===========================================================================
-
-
-async def test_new_shot_starts_with_empty_curves(
-    hass, init_integration, mock_xenia_api
-):
-    tracker = _get_tracker(hass, init_integration)
-    tracker._brew_group_temps = [1.0, 2.0]
-    tracker._timestamps = [0.5, 1.5]
-    tracker._brew_end_time = dt_util.utcnow()
-    await _drive_status(hass, mock_xenia_api, init_integration, MachineStatus.BREWING)
-    assert tracker._brew_group_temps == []
-    assert tracker._timestamps == []
-    assert tracker._brew_end_time is None
-    coordinator = init_integration.runtime_data.coordinator
-    assert tracker._shot_start_time == coordinator.data.shot_start_time
 
 
 async def test_start_afterflow_does_not_reset_if_already_active(hass, init_integration):

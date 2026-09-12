@@ -70,16 +70,21 @@ class PowerOnBehaviorSelect(XeniaEntity, SelectEntity, RestoreEntity):
     """Select entity for power on behavior."""
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_translation_key = "power_on_behavior"
+    _attr_options = POWER_ON_BEHAVIOR_OPTIONS
 
     def __init__(self, coordinator: XeniaDataUpdateCoordinator) -> None:
         """Initialize the select entity."""
         super().__init__(coordinator)
-        self._attr_translation_key = "power_on_behavior"
         self._attr_unique_id = (
             f"{XENIA_DOMAIN}_power_on_behavior_"
             f"{coordinator.config_entry.data[CONF_HOST]}"
         )
-        self._attr_options = POWER_ON_BEHAVIOR_OPTIONS
+
+    @property
+    def available(self) -> bool:
+        """A local preference; an unavailable state would be restored as such."""
+        return True
 
     async def async_added_to_hass(self) -> None:
         """Restore the last selected option."""

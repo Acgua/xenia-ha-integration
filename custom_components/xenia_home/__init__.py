@@ -10,12 +10,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
 import voluptuous as vol
 
-from .const import (
-    CONF_POWER_ON_BEHAVIOR,
-    DEFAULT_POWER_ON_BEHAVIOR,
-    PLATFORMS,
-    XENIA_DOMAIN,
-)
+from .const import CONF_POWER_ON_BEHAVIOR, PLATFORMS, XENIA_DOMAIN
 from .coordinator import (
     XeniaConfigCoordinator,
     XeniaConfigEntry,
@@ -112,19 +107,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: XeniaConfigEntry) -> boo
         coordinator=coordinator,
         config_coordinator=config_coordinator,
         shot_store=shot_store,
-        power_on_behavior=entry.options.get(
-            CONF_POWER_ON_BEHAVIOR, DEFAULT_POWER_ON_BEHAVIOR
-        ),
     )
     if CONF_POWER_ON_BEHAVIOR in entry.options:
         # Releases before 0.8 kept the select value here; strip it before the
-        # update listener exists so this does not reload the entry.
-        hass.config_entries.async_update_entry(
-            entry,
-            options={
-                k: v for k, v in entry.options.items() if k != CONF_POWER_ON_BEHAVIOR
-            },
-        )
+        # update listener is added, or this reloads the entry.
+        options = dict(entry.options)
+        entry.runtime_data.power_on_behavior = options.pop(CONF_POWER_ON_BEHAVIOR)
+        hass.config_entries.async_update_entry(entry, options=options)
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
 

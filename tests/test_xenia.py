@@ -365,12 +365,8 @@ async def test_sb_turn_off_sends_false(mock_api, xenia) -> None:
     assert '"TOGGLE":false' in body
 
 
-async def test_redirected_control_post_raises(mock_api, xenia) -> None:
-    """The firmware answers unknown paths with a redirect to index.html."""
-    mock_api.post(
-        f"{BASE}/toggle/sb", status=301, headers={"Location": "/index.html"}
-    )
-    mock_api.get(f"http://{HOST}/index.html", status=200)
+async def test_redirected_post_raises(mock_api, xenia) -> None:
+    mock_api.post(f"{BASE}/toggle/sb", status=301, headers={"Location": "/index.html"})
     with pytest.raises(ClientResponseError):
         await xenia.sb_turn_on()
 

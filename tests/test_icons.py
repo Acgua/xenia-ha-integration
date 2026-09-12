@@ -11,19 +11,14 @@ async def test_entities_without_device_class_have_an_icon(
         entry.entity_id
         for entry in entity_registry.entities.values()
         if entry.platform == "xenia_home"
-        and entry.domain != "event"
         and entry.original_device_class is None
         and entry.translation_key not in icons.get(entry.domain, {})
     ]
     assert missing == []
 
 
-async def test_status_sensor_has_state_icons(hass, init_integration):
+async def test_state_icons_use_real_states(hass, init_integration):
     icons = (await async_get_icons(hass, "entity", ["xenia_home"]))["xenia_home"]
-    assert set(icons["sensor"]["status"]["state"]) <= {
-        "off",
-        "on",
-        "eco",
-        "brewing",
-        "draining",
-    }
+    status = hass.states.get("sensor.xenia_espresso_machine_status")
+    assert set(icons["sensor"]["status"]["state"]) <= set(status.attributes["options"])
+    assert set(icons["binary_sensor"]["water_tank_empty"]["state"]) <= {"on", "off"}

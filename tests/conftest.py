@@ -20,12 +20,6 @@ from tests.fixtures.api_responses import (
 DEFAULT_HOST = "xenia.local"
 
 
-# Removed autouse: enable_custom_integrations is now pulled in
-# transitively via init_integration so only tests that actually load
-# the integration pay for it. Pure-unit tests that mock hass do not
-# need it.
-
-
 class MockXeniaApi:
     """Helper around aioresponses that knows the Xenia URL surface.
 

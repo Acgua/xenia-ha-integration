@@ -270,42 +270,36 @@ class Xenia:
             data=data,
             headers=headers,
             timeout=ClientTimeout(total=timeout),
+            # The firmware answers an unknown path with a redirect to
+            # index.html, which followed would look like a successful POST.
             allow_redirects=False,
         ) as resp:
-            # The firmware redirects unknown paths to index.html with 200,
-            # which would otherwise pass as success.
             if resp.status >= 300:
                 raise ClientResponseError(
                     resp.request_info,
                     resp.history,
                     status=resp.status,
-                    message=resp.reason or "",
+                    headers=resp.headers,
                 )
             return await resp.read()
 
-    async def _control_machine(self, action: int):
+    async def _control_machine(self, action: int) -> None:
         data = f'{{"action":"{int(action)}"}}'
         await self._post("machine/control", data)
 
-    async def _toggle_sb(self, action: bool):
+    async def _toggle_sb(self, action: bool) -> None:
         data = f'{{"TOGGLE":{str(action).lower()},"SAVE":true}}'
         await self._post("toggle/sb", data)
 
-    async def _inc_dec(self, value: float) -> None:
+    async def set_bg_set_temp(self, value: float) -> None:
+        """Set the brew-group target temperature in degrees Celsius."""
         data = f'{{"BG_SET_TEMP":"{value}", "BB_SET_TEMP":"{value}"}}'
         await self._post("inc_dec", data)
 
-    async def _inc_dec_bb(self, value: float) -> None:
-        data = f'{{"BB_SET_TEMP":"{value}"}}'
-        await self._post("inc_dec_bb", data)
-
-    async def set_bg_set_temp(self, value: float) -> None:
-        """Set the brew-group target temperature in degrees Celsius."""
-        await self._inc_dec(value)
-
     async def set_bb_set_temp(self, value: float) -> None:
         """Set the brew-boiler target temperature in degrees Celsius."""
-        await self._inc_dec_bb(value)
+        data = f'{{"BB_SET_TEMP":"{value}"}}'
+        await self._post("inc_dec_bb", data)
 
     async def get_scripts(self) -> dict[int, str]:
         """Get available scripts as {id: title} dict."""
@@ -340,19 +334,19 @@ class Xenia:
 
     async def create_script(self, name: str, instruction: str) -> None:
         """Create a new script on the machine."""
-        payload = (
+        data = (
             '{"script_id":null,"Edit":"Disabled","switch":null,'
             f'"script":"none","name":"{name}","instruction":"{instruction}"}}'
         )
-        await self._post("scripts/create", payload)
+        await self._post("scripts/create", data)
 
     async def update_script(self, script_id: int, name: str, instruction: str) -> None:
         """Update an existing script on the machine."""
-        payload = (
+        data = (
             f'{{"script_id":{script_id},"Edit":"Enabled","switch":null,'
             f'"script":"none","name":"{name}","instruction":"{instruction}"}}'
         )
-        await self._post("scripts/create", payload)
+        await self._post("scripts/create", data)
 
     async def set_switch(self, switch_key: str, script_id: int) -> None:
         """Set a switch to trigger a specific script."""

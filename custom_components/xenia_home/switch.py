@@ -53,11 +53,8 @@ class XeniaPowerSwitch(XeniaEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn the machine on, respecting the configured power-on behaviour."""
-        behavior = self.runtime_data.power_on_behavior
-        if behavior == PowerOnBehavior.STEAM_ON:
-            await self.coordinator.xenia.machine_turn_on()
-        elif behavior == PowerOnBehavior.STEAM_OFF:
-            await self.coordinator.xenia.machine_turn_on(False)
+        sb_on = self.runtime_data.power_on_behavior == PowerOnBehavior.STEAM_ON
+        await self.coordinator.xenia.machine_turn_on(sb_on=sb_on)
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs) -> None:
@@ -99,11 +96,8 @@ class XeniaEcoSwitch(XeniaEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs) -> None:
         """Leave eco mode by re-applying the configured power-on behaviour."""
-        behavior = self.runtime_data.power_on_behavior
-        if behavior == PowerOnBehavior.STEAM_ON:
-            await self.coordinator.xenia.machine_turn_on()
-        elif behavior == PowerOnBehavior.STEAM_OFF:
-            await self.coordinator.xenia.machine_turn_on(False)
+        sb_on = self.runtime_data.power_on_behavior == PowerOnBehavior.STEAM_ON
+        await self.coordinator.xenia.machine_turn_on(sb_on=sb_on)
         await self.coordinator.async_request_refresh()
 
 

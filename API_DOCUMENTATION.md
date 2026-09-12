@@ -9,6 +9,9 @@ https://www.xenia-espresso.de/api.html
 http://{host}/api/v2/
 ```
 
+Unknown paths answer `301` with a redirect to `index.html` instead of an
+error, so a wrong path looks like a successful request.
+
 ## GET Endpoints
 
 ### `/api/v2/status`
@@ -111,9 +114,8 @@ Controls the machine state.
 
 ### `/api/v2/toggle/sb`
 
-Turns the steam boiler on or off. Unknown paths (for example the old
-`/api/v2/toggle_sb`) are answered with a redirect to `index.html`, not an
-error.
+Turns the steam boiler on or off. Earlier revisions of this document listed
+`/api/v2/toggle_sb`, which the firmware does not serve.
 
 **Content-Type:** `application/x-www-form-urlencoded`
 
@@ -123,11 +125,7 @@ error.
 {"TOGGLE": true, "SAVE": true}
 ```
 
-or
-
-```json
-{"TOGGLE": false, "SAVE": true}
-```
+Set `TOGGLE` to `false` to turn the steam boiler off.
 
 ---
 

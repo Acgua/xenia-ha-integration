@@ -81,19 +81,6 @@ async def test_power_switch_turn_on_steam_on_calls_machine_on(
     mock_xenia_api.assert_post_called_with("machine/control", '"1"')
 
 
-async def test_power_switch_turn_on_steam_off_calls_on_sb_off(
-    hass, init_integration, mock_xenia_api
-):
-    await _select_power_on_behavior(hass, PowerOnBehavior.STEAM_OFF)
-    mock_xenia_api.expect_machine_control()
-    await hass.services.async_call(
-        "switch", "turn_on", {"entity_id": POWER}, blocking=True
-    )
-    await hass.async_block_till_done()
-    # MachineControl.ON_SB_OFF = 5
-    mock_xenia_api.assert_post_called_with("machine/control", '"5"')
-
-
 async def test_power_switch_turn_on_default_behavior_is_steam_off(
     hass, init_integration, mock_xenia_api
 ):

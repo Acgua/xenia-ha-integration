@@ -1,13 +1,13 @@
 """Tests for select.py — power-on-behavior, script, and switch-config selects."""
 
-from unittest.mock import patch
-
+from homeassistant.core import State
 from homeassistant.exceptions import ServiceValidationError
 import pytest
+from pytest_homeassistant_custom_component.common import mock_restore_cache
 
 from custom_components.xenia_home.const import CONF_POWER_ON_BEHAVIOR, PowerOnBehavior
 
-POBE = "select.xenia_espresso_machine_power_on_behavior"
+POWER_ON_BEHAVIOR = "select.xenia_espresso_machine_power_on_behavior"
 SCRIPT = "select.xenia_espresso_machine_script"
 SWITCH_LEFT_SHORT = "select.xenia_espresso_machine_left_switch_left_short"
 
@@ -35,7 +35,7 @@ async def test_select_entities_snapshot(
 
 
 async def test_power_on_behavior_defaults_to_steam_off(hass, init_integration):
-    state = hass.states.get(POBE)
+    state = hass.states.get(POWER_ON_BEHAVIOR)
     assert state.state == PowerOnBehavior.STEAM_OFF.value
 
 
@@ -52,38 +52,60 @@ async def test_power_on_behavior_option_is_migrated_and_removed(
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
-    assert hass.states.get(POBE).state == PowerOnBehavior.STEAM_ON.value
+    assert hass.states.get(POWER_ON_BEHAVIOR).state == PowerOnBehavior.STEAM_ON.value
     assert CONF_POWER_ON_BEHAVIOR not in entry.options
 
 
-async def test_power_on_behavior_select_changes_state_without_reload(
+async def test_power_on_behavior_select_does_not_reload_the_entry(
     hass, init_integration
 ):
-    with patch.object(
-        hass.config_entries, "async_reload", wraps=hass.config_entries.async_reload
-    ) as reload:
-        await hass.services.async_call(
-            "select",
-            "select_option",
-            {"entity_id": POBE, "option": PowerOnBehavior.STEAM_ON},
-            blocking=True,
-        )
-        await hass.async_block_till_done()
-    assert hass.states.get(POBE).state == PowerOnBehavior.STEAM_ON.value
-    assert CONF_POWER_ON_BEHAVIOR not in init_integration.options
-    reload.assert_not_called()
+    runtime_data = init_integration.runtime_data
+    await hass.services.async_call(
+        "select",
+        "select_option",
+        {"entity_id": POWER_ON_BEHAVIOR, "option": PowerOnBehavior.STEAM_ON},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+    assert hass.states.get(POWER_ON_BEHAVIOR).state == PowerOnBehavior.STEAM_ON.value
+    assert init_integration.runtime_data is runtime_data
+
+
+async def test_power_on_behavior_is_restored_after_restart(
+    hass, enable_custom_integrations, mock_xenia_api, mock_config_entry
+):
+    mock_restore_cache(
+        hass, (State(POWER_ON_BEHAVIOR, PowerOnBehavior.STEAM_ON.value),)
+    )
+    mock_xenia_api.register()
+    mock_config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(POWER_ON_BEHAVIOR).state == PowerOnBehavior.STEAM_ON.value
+
+
+async def test_power_on_behavior_stays_available_without_machine(
+    hass, init_integration
+):
+    """The select is a local preference; an unreachable machine must not
+    make it unavailable, or a restart would store and restore that state."""
+    coordinator = init_integration.runtime_data.coordinator
+    coordinator.last_update_success = False
+    coordinator.async_update_listeners()
+    await hass.async_block_till_done()
+    assert hass.states.get(POWER_ON_BEHAVIOR).state == PowerOnBehavior.STEAM_OFF.value
 
 
 async def test_power_on_behavior_survives_reload(hass, init_integration):
     await hass.services.async_call(
         "select",
         "select_option",
-        {"entity_id": POBE, "option": PowerOnBehavior.STEAM_ON},
+        {"entity_id": POWER_ON_BEHAVIOR, "option": PowerOnBehavior.STEAM_ON},
         blocking=True,
     )
     await hass.config_entries.async_reload(init_integration.entry_id)
     await hass.async_block_till_done()
-    assert hass.states.get(POBE).state == PowerOnBehavior.STEAM_ON.value
+    assert hass.states.get(POWER_ON_BEHAVIOR).state == PowerOnBehavior.STEAM_ON.value
 
 
 async def test_power_on_behavior_invalid_option_raises(hass, init_integration):
@@ -92,7 +114,7 @@ async def test_power_on_behavior_invalid_option_raises(hass, init_integration):
         await hass.services.async_call(
             "select",
             "select_option",
-            {"entity_id": POBE, "option": "garbage"},
+            {"entity_id": POWER_ON_BEHAVIOR, "option": "garbage"},
             blocking=True,
         )
 
