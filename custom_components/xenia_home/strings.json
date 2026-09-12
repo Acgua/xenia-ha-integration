@@ -110,6 +110,19 @@
       },
       "scale_flow_rate": {
         "name": "Scale flow rate"
+      },
+      "status": {
+        "name": "Status",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "eco": "Eco",
+          "brewing": "Brewing",
+          "draining": "Draining"
+        }
+      },
+      "shot_start_time": {
+        "name": "Shot start time"
       }
     },
     "number": {

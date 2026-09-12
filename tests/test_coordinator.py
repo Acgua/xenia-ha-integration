@@ -205,6 +205,13 @@ async def test_shot_start_time_is_set_when_brewing_begins() -> None:
     assert before <= result.shot_start_time <= datetime.now(UTC)
 
 
+async def test_shot_start_time_is_set_on_first_refresh_while_brewing() -> None:
+    xenia = _make_xenia_mock(overview={"MA_STATUS": int(MachineStatus.BREWING)})
+    coordinator = _make_data_coordinator(xenia=xenia)
+    result = await coordinator._async_update_data()
+    assert result.shot_start_time is not None
+
+
 async def test_shot_start_time_is_kept_while_brewing() -> None:
     xenia = _make_xenia_mock(overview={"MA_STATUS": int(MachineStatus.BREWING)})
     coordinator = _make_data_coordinator(xenia=xenia)

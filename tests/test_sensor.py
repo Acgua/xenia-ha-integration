@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime
 
+from homeassistant.util import dt as dt_util
 import pytest
 
 from custom_components.xenia_home.coordinator import XeniaCoordinatorData
@@ -130,3 +131,29 @@ async def test_shot_start_time_sensor_reports_start_of_running_shot(
     state = hass.states.get("sensor.xenia_espresso_machine_shot_start_time")
     assert state.state == "2026-09-12T10:00:00+00:00"
     assert state.attributes["device_class"] == "timestamp"
+
+
+async def test_status_and_shot_start_time_while_brewing(
+    hass, enable_custom_integrations, mock_xenia_api, mock_config_entry
+):
+    mock_xenia_api.set_overview(MA_STATUS=3)
+    mock_xenia_api.register()
+    mock_config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.xenia_espresso_machine_status").state == "brewing"
+    start = hass.states.get("sensor.xenia_espresso_machine_shot_start_time").state
+    assert dt_util.parse_datetime(start) is not None
+
+
+async def test_status_sensor_unknown_for_unrecognised_status(
+    hass, enable_custom_integrations, mock_xenia_api, mock_config_entry
+):
+    mock_xenia_api.set_overview(MA_STATUS=42)
+    mock_xenia_api.register()
+    mock_config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    state = hass.states.get("sensor.xenia_espresso_machine_status")
+    assert state.state == "unknown"
+    assert "unknown" not in state.attributes["options"]

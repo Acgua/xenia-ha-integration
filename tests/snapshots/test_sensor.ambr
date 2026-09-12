@@ -230,75 +230,6 @@
     'state': '1234',
   })
 # ---
-# name: test_sensor_entities_snapshot[sensor.xenia_espresso_machine_machine_status-registry]
-  EntityRegistryEntrySnapshot({
-    'aliases': list([
-      None,
-    ]),
-    'area_id': None,
-    'capabilities': dict({
-      'options': list([
-        'off',
-        'on',
-        'eco',
-        'brewing',
-        'draining',
-        'unknown',
-      ]),
-    }),
-    'config_entry_id': <ANY>,
-    'config_subentry_id': <ANY>,
-    'device_class': None,
-    'device_id': <ANY>,
-    'disabled_by': None,
-    'domain': 'sensor',
-    'entity_category': None,
-    'entity_id': 'sensor.xenia_espresso_machine_machine_status',
-    'has_entity_name': True,
-    'hidden_by': None,
-    'icon': None,
-    'id': <ANY>,
-    'labels': set({
-    }),
-    'name': None,
-    'object_id_base': 'Machine status',
-    'options': dict({
-    }),
-    'original_device_class': <SensorDeviceClass.ENUM: 'enum'>,
-    'original_icon': 'mdi:coffee-maker',
-    'original_name': 'Machine status',
-    'platform': 'xenia_home',
-    'previous_unique_id': None,
-    'suggested_object_id': None,
-    'supported_features': 0,
-    'translation_key': 'machine_status',
-    'unique_id': 'xenia.local_machine_status',
-    'unit_of_measurement': None,
-  })
-# ---
-# name: test_sensor_entities_snapshot[sensor.xenia_espresso_machine_machine_status-state]
-  StateSnapshot({
-    'attributes': ReadOnlyDict({
-      'device_class': 'enum',
-      'friendly_name': 'Xenia Espresso Machine Machine status',
-      'icon': 'mdi:coffee-maker',
-      'options': list([
-        'off',
-        'on',
-        'eco',
-        'brewing',
-        'draining',
-        'unknown',
-      ]),
-    }),
-    'context': <ANY>,
-    'entity_id': 'sensor.xenia_espresso_machine_machine_status',
-    'last_changed': <ANY>,
-    'last_reported': <ANY>,
-    'last_updated': <ANY>,
-    'state': 'on',
-  })
-# ---
 # name: test_sensor_entities_snapshot[sensor.xenia_espresso_machine_operating_hours-registry]
   EntityRegistryEntrySnapshot({
     'aliases': list([
@@ -466,6 +397,73 @@
     'last_reported': <ANY>,
     'last_updated': <ANY>,
     'state': 'unknown',
+  })
+# ---
+# name: test_sensor_entities_snapshot[sensor.xenia_espresso_machine_status-registry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+      None,
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      'options': list([
+        'off',
+        'on',
+        'eco',
+        'brewing',
+        'draining',
+      ]),
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.xenia_espresso_machine_status',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Status',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.ENUM: 'enum'>,
+    'original_icon': 'mdi:coffee-maker',
+    'original_name': 'Status',
+    'platform': 'xenia_home',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'status',
+    'unique_id': 'xenia.local_machine_status',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_sensor_entities_snapshot[sensor.xenia_espresso_machine_status-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'device_class': 'enum',
+      'friendly_name': 'Xenia Espresso Machine Status',
+      'icon': 'mdi:coffee-maker',
+      'options': list([
+        'off',
+        'on',
+        'eco',
+        'brewing',
+        'draining',
+      ]),
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.xenia_espresso_machine_status',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'on',
   })
 # ---
 # name: test_sensor_entities_snapshot[sensor.xenia_espresso_machine_steamboiler_pressure-registry]

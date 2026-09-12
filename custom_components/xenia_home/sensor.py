@@ -136,11 +136,19 @@ SENSOR_TYPES: Final[tuple[XeniaSensorEntityDescription, ...]] = (
     ),
     XeniaSensorEntityDescription(
         key="machine_status",
-        translation_key="machine_status",
+        translation_key="status",
         device_class=SensorDeviceClass.ENUM,
-        options=[status.name.lower() for status in MachineStatus],
+        options=[
+            status.name.lower()
+            for status in MachineStatus
+            if status is not MachineStatus.UNKNOWN
+        ],
         icon="mdi:coffee-maker",
-        value_fn=lambda data: data.overview.ma_status.name.lower(),
+        value_fn=lambda data: (
+            None
+            if data.overview.ma_status is MachineStatus.UNKNOWN
+            else data.overview.ma_status.name.lower()
+        ),
     ),
     XeniaSensorEntityDescription(
         key="shot_start_time",

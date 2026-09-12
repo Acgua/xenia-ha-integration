@@ -108,7 +108,7 @@ reason to.
 - Live sensors for temperatures, pressures, electric current, total energy, extractions, and operating hours
 - Scale flow rate sensor (g/s) on firmware that reports it
 - Water tank level monitoring
-- Machine status sensor (off/on/eco/brewing/draining/unknown)
+- Status sensor (off/on/eco/brewing/draining)
 - Shot start time sensor, set while a shot is brewing (see **Shot timer** below)
 - Trigger any on-device script from Home Assistant (by ID or by name)
 - Map each of the six physical switch positions to a script
@@ -120,6 +120,8 @@ reason to.
 The integration does not count seconds itself. The shot start time sensor
 holds the start of the running shot and is `unknown` otherwise; the shot
 tracker event carries the final `duration_seconds` once the shot is done.
+The start is the moment Home Assistant first saw the shot, so a shot that
+is already running when the integration loads is timed from the load.
 
 For a live timer without any helper, add the sensor to an entities card
 with `time_format: total`. The card counts up every second on its own:
@@ -140,7 +142,7 @@ cards:
   - type: conditional
     conditions:
       - condition: state
-        entity: sensor.xenia_espresso_machine_machine_status
+        entity: sensor.xenia_espresso_machine_status
         state: brewing
     card:
       type: entities
@@ -151,7 +153,7 @@ cards:
   - type: conditional
     conditions:
       - condition: state
-        entity: sensor.xenia_espresso_machine_machine_status
+        entity: sensor.xenia_espresso_machine_status
         state_not: brewing
     card:
       type: entities
