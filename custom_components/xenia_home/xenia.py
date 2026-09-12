@@ -2,10 +2,11 @@
 
 from dataclasses import dataclass
 from enum import IntEnum
+import json
 import logging
 from typing import Any
 
-from aiohttp import ClientError, ClientSession, ClientTimeout
+from aiohttp import ClientError, ClientResponseError, ClientSession, ClientTimeout
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -261,43 +262,42 @@ class Xenia:
             resp.raise_for_status()
             return XeniaMachineData.from_dict(await resp.json())
 
-    async def _control_machine(self, action: int):
-        url = f"http://{self._host}/api/v2/machine/control"
-        data = f'{{"action":"{int(action)}"}}'
+    async def _post(self, path: str, data: str, timeout: int = 5) -> bytes:
+        url = f"http://{self._host}/api/v2/{path}"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         async with self._session.post(
-            url, data=data, headers=headers, timeout=ClientTimeout(total=5)
+            url,
+            data=data,
+            headers=headers,
+            timeout=ClientTimeout(total=timeout),
+            allow_redirects=False,
         ) as resp:
-            resp.raise_for_status()
+            # The firmware redirects unknown paths to index.html with 200,
+            # which would otherwise pass as success.
+            if resp.status >= 300:
+                raise ClientResponseError(
+                    resp.request_info,
+                    resp.history,
+                    status=resp.status,
+                    message=resp.reason or "",
+                )
+            return await resp.read()
+
+    async def _control_machine(self, action: int):
+        data = f'{{"action":"{int(action)}"}}'
+        await self._post("machine/control", data)
 
     async def _toggle_sb(self, action: bool):
-        url = f"http://{self._host}/api/v2/toggle_sb"
-        data = f'{{"TOGGLE":{str(action).lower()}}}'
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        async with self._session.post(
-            url, data=data, headers=headers, timeout=ClientTimeout(total=5)
-        ) as resp:
-            resp.raise_for_status()
+        data = f'{{"TOGGLE":{str(action).lower()},"SAVE":true}}'
+        await self._post("toggle/sb", data)
 
-    async def _inc_dec(self, value: float) -> dict:
-        url = f"http://{self._host}/api/v2/inc_dec"
+    async def _inc_dec(self, value: float) -> None:
         data = f'{{"BG_SET_TEMP":"{value}", "BB_SET_TEMP":"{value}"}}'
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        async with self._session.post(
-            url, data=data, headers=headers, timeout=ClientTimeout(total=5)
-        ) as resp:
-            resp.raise_for_status()
-            return await resp.json()
+        await self._post("inc_dec", data)
 
-    async def _inc_dec_bb(self, value: float) -> dict:
-        url = f"http://{self._host}/api/v2/inc_dec_bb"
+    async def _inc_dec_bb(self, value: float) -> None:
         data = f'{{"BB_SET_TEMP":"{value}"}}'
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        async with self._session.post(
-            url, data=data, headers=headers, timeout=ClientTimeout(total=5)
-        ) as resp:
-            resp.raise_for_status()
-            return await resp.json()
+        await self._post("inc_dec_bb", data)
 
     async def set_bg_set_temp(self, value: float) -> None:
         """Set the brew-group target temperature in degrees Celsius."""
@@ -319,13 +319,8 @@ class Xenia:
 
     async def execute_script(self, script_id: int) -> None:
         """Execute a script by ID."""
-        url = f"http://{self._host}/api/v2/scripts/execute"
         data = f'{{"ID":{script_id}}}'
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        async with self._session.post(
-            url, data=data, headers=headers, timeout=ClientTimeout(total=5)
-        ) as resp:
-            resp.raise_for_status()
+        await self._post("scripts/execute", data)
 
     async def get_switches(self) -> dict[str, int]:
         """Get switch-to-script mappings."""
@@ -339,52 +334,31 @@ class Xenia:
 
         Returns dict with 'Content' (instruction) and 'Title' keys.
         """
-        url = f"http://{self._host}/api/v2/scripts/read"
         file_name = f"{script_id:03d}"
         data = f'{{"FILE_NAME":"{file_name}"}}'
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        async with self._session.post(
-            url, data=data, headers=headers, timeout=ClientTimeout(total=10)
-        ) as resp:
-            resp.raise_for_status()
-            return await resp.json()
+        return json.loads(await self._post("scripts/read", data, timeout=10))
 
     async def create_script(self, name: str, instruction: str) -> None:
         """Create a new script on the machine."""
-        url = f"http://{self._host}/api/v2/scripts/create"
         payload = (
             '{"script_id":null,"Edit":"Disabled","switch":null,'
             f'"script":"none","name":"{name}","instruction":"{instruction}"}}'
         )
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        async with self._session.post(
-            url, data=payload, headers=headers, timeout=ClientTimeout(total=5)
-        ) as resp:
-            resp.raise_for_status()
+        await self._post("scripts/create", payload)
 
     async def update_script(self, script_id: int, name: str, instruction: str) -> None:
         """Update an existing script on the machine."""
-        url = f"http://{self._host}/api/v2/scripts/create"
         payload = (
             f'{{"script_id":{script_id},"Edit":"Enabled","switch":null,'
             f'"script":"none","name":"{name}","instruction":"{instruction}"}}'
         )
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        async with self._session.post(
-            url, data=payload, headers=headers, timeout=ClientTimeout(total=5)
-        ) as resp:
-            resp.raise_for_status()
+        await self._post("scripts/create", payload)
 
     async def set_switch(self, switch_key: str, script_id: int) -> None:
         """Set a switch to trigger a specific script."""
         # Fetch current switches, update the one key, and send all back
         current = await self.get_switches()
         current[switch_key] = script_id
-        url = f"http://{self._host}/api/v2/switches"
         # Convert all values to strings as per API format
         data = "{" + ",".join(f'"{k}":"{v}"' for k, v in current.items()) + "}"
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        async with self._session.post(
-            url, data=data, headers=headers, timeout=ClientTimeout(total=5)
-        ) as resp:
-            resp.raise_for_status()
+        await self._post("switches", data)

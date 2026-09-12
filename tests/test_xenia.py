@@ -351,17 +351,28 @@ async def test_machine_set_eco_sends_eco(mock_api, xenia) -> None:
 
 
 async def test_sb_turn_on_sends_true(mock_api, xenia) -> None:
-    mock_api.post(f"{BASE}/toggle_sb", status=200)
+    mock_api.post(f"{BASE}/toggle/sb", status=200)
     await xenia.sb_turn_on()
-    body = str(_last_post_body(mock_api, f"{BASE}/toggle_sb"))
-    assert "true" in body
+    body = str(_last_post_body(mock_api, f"{BASE}/toggle/sb"))
+    assert '"TOGGLE":true' in body
+    assert '"SAVE":true' in body
 
 
 async def test_sb_turn_off_sends_false(mock_api, xenia) -> None:
-    mock_api.post(f"{BASE}/toggle_sb", status=200)
+    mock_api.post(f"{BASE}/toggle/sb", status=200)
     await xenia.sb_turn_off()
-    body = str(_last_post_body(mock_api, f"{BASE}/toggle_sb"))
-    assert "false" in body
+    body = str(_last_post_body(mock_api, f"{BASE}/toggle/sb"))
+    assert '"TOGGLE":false' in body
+
+
+async def test_redirected_control_post_raises(mock_api, xenia) -> None:
+    """The firmware answers unknown paths with a redirect to index.html."""
+    mock_api.post(
+        f"{BASE}/toggle/sb", status=301, headers={"Location": "/index.html"}
+    )
+    mock_api.get(f"http://{HOST}/index.html", status=200)
+    with pytest.raises(ClientResponseError):
+        await xenia.sb_turn_on()
 
 
 # ===========================================================================
@@ -537,8 +548,8 @@ async def test_http_500_raises(
         ("machine_turn_on", (), "machine/control", "post"),
         ("machine_turn_off", (), "machine/control", "post"),
         ("machine_set_eco", (), "machine/control", "post"),
-        ("sb_turn_on", (), "toggle_sb", "post"),
-        ("sb_turn_off", (), "toggle_sb", "post"),
+        ("sb_turn_on", (), "toggle/sb", "post"),
+        ("sb_turn_off", (), "toggle/sb", "post"),
         ("set_bg_set_temp", (90.0,), "inc_dec", "post"),
         ("set_bb_set_temp", (130.0,), "inc_dec_bb", "post"),
         ("execute_script", (1,), "scripts/execute", "post"),

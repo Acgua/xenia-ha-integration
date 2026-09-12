@@ -146,7 +146,7 @@ class MockXeniaApi:
         self._mock.post(self._url("machine/control"), status=200, repeat=True)
 
     def expect_toggle_sb(self) -> None:
-        self._mock.post(self._url("toggle_sb"), status=200, repeat=True)
+        self._mock.post(self._url("toggle/sb"), status=200, repeat=True)
 
     def expect_inc_dec(self) -> None:
         self._mock.post(self._url("inc_dec"), payload={}, repeat=True)

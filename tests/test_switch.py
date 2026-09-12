@@ -256,7 +256,8 @@ async def test_steam_boiler_turn_on_calls_toggle_sb(
         "switch", "turn_on", {"entity_id": STEAM_BOILER}, blocking=True
     )
     await hass.async_block_till_done()
-    mock_xenia_api.assert_post_called_with("toggle_sb", "true")
+    mock_xenia_api.assert_post_called_with("toggle/sb", '"TOGGLE":true')
+    mock_xenia_api.assert_post_called_with("toggle/sb", '"SAVE":true')
 
 
 async def test_steam_boiler_turn_off_calls_toggle_sb(
@@ -267,4 +268,4 @@ async def test_steam_boiler_turn_off_calls_toggle_sb(
         "switch", "turn_off", {"entity_id": STEAM_BOILER}, blocking=True
     )
     await hass.async_block_till_done()
-    mock_xenia_api.assert_post_called_with("toggle_sb", "false")
+    mock_xenia_api.assert_post_called_with("toggle/sb", '"TOGGLE":false')

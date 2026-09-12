@@ -109,22 +109,24 @@ Controls the machine state.
 
 ---
 
-### `/api/v2/toggle_sb`
+### `/api/v2/toggle/sb`
 
-Turns the steam boiler on or off.
+Turns the steam boiler on or off. Unknown paths (for example the old
+`/api/v2/toggle_sb`) are answered with a redirect to `index.html`, not an
+error.
 
 **Content-Type:** `application/x-www-form-urlencoded`
 
 **Body:**
 
 ```json
-{"TOGGLE": true}
+{"TOGGLE": true, "SAVE": true}
 ```
 
 or
 
 ```json
-{"TOGGLE": false}
+{"TOGGLE": false, "SAVE": true}
 ```
 
 ---
