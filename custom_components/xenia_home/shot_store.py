@@ -5,6 +5,7 @@ import logging
 from typing import Any
 
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
@@ -41,52 +42,40 @@ class XeniaShotStore:
         """Load the index; a corrupt file must never block integration setup."""
         try:
             data = await self._index_store.async_load()
-        except Exception:
-            _LOGGER.exception("Shot index unreadable; starting with empty history")
+            if data is None:
+                data = await self._relocate_flat_layout()
+        except HomeAssistantError as err:
+            _LOGGER.error("Shot history unreadable, starting empty: %s", err)
             return
-        if data is None:
-            try:
-                data = await self._async_relocate_flat_layout()
-            except Exception:
-                _LOGGER.exception(
-                    "Relocating flat shot storage failed; starting with empty history"
-                )
         if data is not None:
             self._index = data
 
     def _flat_store(self, suffix: str) -> Store[dict[str, Any]]:
-        # Storage keys used up to v0.7.0-beta.1, before the domain folder.
+        # Key layout used up to v0.7.0-beta.1.
         return Store(
             self._hass, STORAGE_VERSION, f"{XENIA_DOMAIN}.{self._entry_id}.{suffix}"
         )
 
-    async def _async_relocate_flat_layout(self) -> dict[str, Any] | None:
-        """Move flat pre-folder storage files into the domain folder."""
-        old_index_store = self._flat_store("shots_index")
-        try:
-            index = await old_index_store.async_load()
-        except Exception:
-            _LOGGER.exception(
-                "Flat shot index unreadable; starting with empty history"
-            )
-            return None
+    async def _relocate_flat_layout(self) -> dict[str, Any] | None:
+        flat_index_store = self._flat_store("shots_index")
+        index = await flat_index_store.async_load()
         if index is None:
             return None
+        if not isinstance(index.get("shots"), list):
+            _LOGGER.error(
+                "Flat shot index %s is malformed, left in place", flat_index_store.path
+            )
+            return None
         for month in {s["month"] for s in index["shots"]}:
-            old_chunk_store = self._flat_store(f"shots_{month}")
-            try:
-                chunk = await old_chunk_store.async_load()
-            except Exception:
-                _LOGGER.exception(
-                    "Flat shot chunk %s unreadable; relocating as empty", month
-                )
-                chunk = {}
+            flat_chunk_store = self._flat_store(f"shots_{month}")
+            chunk = await flat_chunk_store.async_load()
             if chunk is None:
+                # Already moved by an interrupted run; keep the relocated file.
                 continue
             await self._chunk_store(month).async_save(chunk)
-            await old_chunk_store.async_remove()
+            await flat_chunk_store.async_remove()
         await self._index_store.async_save(index)
-        await old_index_store.async_remove()
+        await flat_index_store.async_remove()
         return index
 
     @property

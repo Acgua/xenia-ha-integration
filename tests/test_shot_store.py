@@ -2,6 +2,7 @@
 
 from unittest.mock import patch
 
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.storage import Store
 
 from custom_components.xenia_home.const import XENIA_DOMAIN
@@ -121,7 +122,7 @@ async def test_migrated_flag_persists(hass):
 
 
 async def test_corrupt_index_is_tolerated(hass):
-    with patch.object(Store, "async_load", side_effect=OSError("corrupt")):
+    with patch.object(Store, "async_load", side_effect=HomeAssistantError("corrupt")):
         store = await _loaded_store(hass)
     assert store.list_shots() == []
 
@@ -136,7 +137,7 @@ async def test_corrupt_chunk_is_tolerated(hass):
     await store.async_add_shot(payload)
 
     reloaded = await _loaded_store(hass)
-    with patch.object(Store, "async_load", side_effect=OSError("corrupt")):
+    with patch.object(Store, "async_load", side_effect=HomeAssistantError("corrupt")):
         assert await reloaded.async_get_shots([payload["start_time"]]) == []
 
     # store remains usable after the corrupt read
@@ -179,77 +180,45 @@ async def test_files_live_in_domain_folder(hass, hass_storage):
     assert not any(k.startswith(f"{XENIA_DOMAIN}.") for k in hass_storage)
 
 
-def _flat_storage_entry(key: str, data: dict) -> dict:
-    return {"version": 1, "minor_version": 1, "key": key, "data": data}
-
-
-def _seed_flat_layout(hass_storage, *payloads) -> None:
-    """Write a v0.7.0-beta.1 flat file layout for the given shots."""
-    shots = []
-    chunks: dict[str, dict] = {}
+async def _seed_flat_layout(hass, hass_storage, *payloads) -> None:
+    """Write the v0.7.0-beta.1 flat file layout for the given shots."""
+    store = await _loaded_store(hass)
     for payload in payloads:
-        month = payload["start_time"][:7]
-        chunks.setdefault(month, {})[payload["start_time"]] = payload
-        shots.append(
-            {
-                "shot_id": payload["start_time"],
-                "start_time": payload["start_time"],
-                "brew_end_time": payload["brew_end_time"],
-                "duration_seconds": payload["duration_seconds"],
-                "final_weight_g": payload["weights"][-1],
-                "month": month,
-            }
-        )
-    index_key = f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_index"
-    hass_storage[index_key] = _flat_storage_entry(
-        index_key, {"migrated": True, "shots": shots}
-    )
-    for month, chunk in chunks.items():
-        chunk_key = f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_{month}"
-        hass_storage[chunk_key] = _flat_storage_entry(chunk_key, chunk)
+        await store.async_add_shot(payload)
+    await store.async_set_migrated()
+    for key in [k for k in hass_storage if k.startswith(f"{XENIA_DOMAIN}/")]:
+        hass_storage[key.replace("/", ".", 1)] = hass_storage.pop(key)
 
 
 async def test_flat_beta_layout_is_relocated(hass, hass_storage):
     june = shot_payload("2026-06-15T08:00:00.000+00:00")
     july = shot_payload("2026-07-01T10:00:00.000+00:00")
-    _seed_flat_layout(hass_storage, june, july)
+    await _seed_flat_layout(hass, hass_storage, june, july)
 
     store = await _loaded_store(hass)
 
-    # history is intact and the recorder import will not run again
     assert [s["shot_id"] for s in store.list_shots()] == [
         july["start_time"],
         june["start_time"],
     ]
     shots = await store.async_get_shots([june["start_time"]])
     assert shots == [{**june, "shot_id": june["start_time"]}]
+    # the recorder import must not run a second time
     assert store.migrated is True
 
-    # flat files are gone, folder files exist
     assert not any(k.startswith(f"{XENIA_DOMAIN}.") for k in hass_storage)
     assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_index" in hass_storage
     assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_2026-06" in hass_storage
     assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_2026-07" in hass_storage
 
 
-async def test_relocation_runs_once(hass, hass_storage):
-    payload = shot_payload()
-    _seed_flat_layout(hass_storage, payload)
-    await _loaded_store(hass)
-
-    reloaded = await _loaded_store(hass)
-    assert [s["shot_id"] for s in reloaded.list_shots()] == [payload["start_time"]]
-
-
 async def test_relocation_rerun_keeps_moved_chunks(hass, hass_storage):
     """A crash between chunk move and index save must not lose payloads."""
     payload = shot_payload()
-    _seed_flat_layout(hass_storage, payload)
+    await _seed_flat_layout(hass, hass_storage, payload)
     month = payload["start_time"][:7]
-    flat_chunk_key = f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_{month}"
-    folder_chunk_key = f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_{month}"
-    hass_storage[folder_chunk_key] = _flat_storage_entry(
-        folder_chunk_key, hass_storage.pop(flat_chunk_key)["data"]
+    hass_storage[f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_{month}"] = hass_storage.pop(
+        f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_{month}"
     )
 
     store = await _loaded_store(hass)
@@ -259,34 +228,9 @@ async def test_relocation_rerun_keeps_moved_chunks(hass, hass_storage):
     assert not any(k.startswith(f"{XENIA_DOMAIN}.") for k in hass_storage)
 
 
-async def test_corrupt_flat_index_leaves_files_and_starts_empty(hass, hass_storage):
-    payload = shot_payload()
-    _seed_flat_layout(hass_storage, payload)
-    flat_index_key = f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_index"
-
-    real_load = Store.async_load
-
-    async def load(self):
-        if self.key == flat_index_key:
-            raise OSError("corrupt")
-        return await real_load(self)
-
-    with patch.object(Store, "async_load", load):
-        store = await _loaded_store(hass)
-
-    assert store.list_shots() == []
-    # the unreadable flat files stay untouched for manual recovery
-    assert flat_index_key in hass_storage
-
-    # the store is usable and writes to the folder layout
-    await store.async_add_shot(payload)
-    assert [s["shot_id"] for s in store.list_shots()] == [payload["start_time"]]
-    assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_index" in hass_storage
-
-
 async def test_malformed_flat_index_is_tolerated(hass, hass_storage):
     flat_index_key = f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_index"
-    hass_storage[flat_index_key] = _flat_storage_entry(flat_index_key, {"bogus": 1})
+    hass_storage[flat_index_key] = {"version": 1, "data": {"bogus": 1}}
 
     store = await _loaded_store(hass)
 
@@ -299,23 +243,32 @@ async def test_malformed_flat_index_is_tolerated(hass, hass_storage):
     assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_index" in hass_storage
 
 
-async def test_corrupt_flat_chunk_relocates_as_empty(hass, hass_storage):
+async def test_unreadable_flat_chunk_aborts_relocation_until_readable(
+    hass, hass_storage
+):
     june = shot_payload("2026-06-15T08:00:00.000+00:00")
     july = shot_payload("2026-07-01T10:00:00.000+00:00")
-    _seed_flat_layout(hass_storage, june, july)
+    await _seed_flat_layout(hass, hass_storage, june, july)
     flat_june_key = f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_2026-06"
 
     real_load = Store.async_load
 
     async def load(self):
         if self.key == flat_june_key:
-            raise OSError("corrupt")
+            raise HomeAssistantError("unreadable")
         return await real_load(self)
 
     with patch.object(Store, "async_load", load):
         store = await _loaded_store(hass)
 
-    # relocation completed: the corrupt month is empty, the other intact
+    # nothing is lost: the unreadable file and the flat index stay in place
+    assert store.list_shots() == []
+    assert flat_june_key in hass_storage
+    assert f"{XENIA_DOMAIN}.{ENTRY_ID}.shots_index" in hass_storage
+    assert f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_index" not in hass_storage
+
+    # the next start with a readable file completes the relocation
+    store = await _loaded_store(hass)
     shots = await store.async_get_shots([june["start_time"], july["start_time"]])
-    assert [s["shot_id"] for s in shots] == [july["start_time"]]
+    assert [s["shot_id"] for s in shots] == [june["start_time"], july["start_time"]]
     assert not any(k.startswith(f"{XENIA_DOMAIN}.") for k in hass_storage)
