@@ -1,6 +1,6 @@
 """Tests for coordinator.py — fast and config coordinators."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -174,53 +174,6 @@ async def test_data_coordinator_raises_update_failed_on_single_error() -> None:
     coordinator = _make_data_coordinator(xenia=xenia)
     with pytest.raises(UpdateFailed, match="Xenia fetch failed"):
         await coordinator._async_update_data()
-
-
-# ===========================================================================
-# Shot start time
-# ===========================================================================
-
-
-def _data(shot_start_time: datetime | None = None) -> XeniaCoordinatorData:
-    return XeniaCoordinatorData(
-        overview=XeniaOverviewData.from_dict({}),
-        overview_single=XeniaOverviewSingleData.from_dict({}),
-        shot_start_time=shot_start_time,
-    )
-
-
-async def test_shot_start_time_is_none_when_not_brewing() -> None:
-    coordinator = _make_data_coordinator()
-    result = await coordinator._async_update_data()
-    assert result.shot_start_time is None
-
-
-@pytest.mark.parametrize("previous", [None, _data()])
-async def test_shot_start_time_is_set_when_brewing_begins(previous) -> None:
-    xenia = _make_xenia_mock(overview={"MA_STATUS": int(MachineStatus.BREWING)})
-    coordinator = _make_data_coordinator(xenia=xenia)
-    coordinator.data = previous
-    before = datetime.now(UTC)
-    result = await coordinator._async_update_data()
-    assert before <= result.shot_start_time <= datetime.now(UTC)
-
-
-async def test_shot_start_time_is_kept_while_brewing() -> None:
-    xenia = _make_xenia_mock(overview={"MA_STATUS": int(MachineStatus.BREWING)})
-    coordinator = _make_data_coordinator(xenia=xenia)
-    started = datetime(2026, 9, 12, 10, 0, tzinfo=UTC)
-    coordinator.data = _data(started)
-    result = await coordinator._async_update_data()
-    assert result.shot_start_time == started
-
-
-async def test_shot_start_time_is_cleared_when_brewing_ends() -> None:
-    xenia = _make_xenia_mock(overview={"MA_STATUS": int(MachineStatus.DRAINING)})
-    coordinator = _make_data_coordinator(xenia=xenia)
-    started = datetime(2026, 9, 12, 10, 0, tzinfo=UTC)
-    coordinator.data = _data(started)
-    result = await coordinator._async_update_data()
-    assert result.shot_start_time is None
 
 
 # ===========================================================================

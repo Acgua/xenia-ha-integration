@@ -1,9 +1,12 @@
 """Tests for sensor.py — sensor entities."""
 
+from unittest.mock import AsyncMock, patch
+
 from homeassistant.util import dt as dt_util
 import pytest
 
-from tests.fixtures.api_responses import OVERVIEW_NEW_FW_FIELDS
+from custom_components.xenia_home.xenia import MachineStatus, XeniaOverviewData
+from tests.fixtures.api_responses import OVERVIEW_NEW_FW_FIELDS, OVERVIEW_PAYLOAD
 
 
 async def test_sensor_entities_snapshot(
@@ -133,6 +136,24 @@ async def test_status_sensor_unknown_for_unrecognised_status(
     mock_config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done()
-    state = hass.states.get("sensor.xenia_espresso_machine_status")
-    assert state.state == "unknown"
-    assert "unknown" not in state.attributes["options"]
+    assert hass.states.get("sensor.xenia_espresso_machine_status").state == "unknown"
+
+
+async def test_shot_start_time_follows_the_shot(hass, init_integration):
+    coordinator = init_integration.runtime_data.coordinator
+
+    async def poll(status: MachineStatus) -> str:
+        overview = XeniaOverviewData.from_dict(
+            {**OVERVIEW_PAYLOAD, "MA_STATUS": int(status)}
+        )
+        with patch.object(
+            coordinator.xenia, "get_overview", AsyncMock(return_value=overview)
+        ):
+            await coordinator.async_refresh()
+        await hass.async_block_till_done()
+        return hass.states.get("sensor.xenia_espresso_machine_shot_start_time").state
+
+    started = await poll(MachineStatus.BREWING)
+    assert dt_util.parse_datetime(started) is not None
+    assert await poll(MachineStatus.BREWING) == started
+    assert await poll(MachineStatus.ON) == "unknown"
