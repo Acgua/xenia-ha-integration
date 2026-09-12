@@ -174,7 +174,10 @@ shot timer blueprint: it writes the seconds into a number helper.
    [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FKnoedelauflauf%2Fxenia-home%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fxenia_home%2Fshot_timer.yaml)
 3. Create an automation from it and pick the three sensors and the helper.
 
-The helper changes every second; keep it out of the recorder:
+Optional but recommended: the helper changes every second while a shot
+runs, and every change is a row in the recorder database. To keep it out,
+add the helper to the `recorder` section of your `configuration.yaml`
+(create the section if it does not exist) and restart Home Assistant:
 
 ```yaml
 recorder:
