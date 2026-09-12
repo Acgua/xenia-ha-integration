@@ -40,7 +40,6 @@ class XeniaPowerSwitch(XeniaEntity, SwitchEntity):
         self._attr_unique_id = (
             f"{XENIA_DOMAIN}_power_{coordinator.config_entry.data[CONF_HOST]}"
         )
-        self._attr_icon = "mdi:coffee-maker"
 
     @property
     def is_on(self):
@@ -77,7 +76,6 @@ class XeniaEcoSwitch(XeniaEntity, SwitchEntity):
         self._attr_unique_id = (
             f"{XENIA_DOMAIN}_eco_mode_{coordinator.config_entry.data[CONF_HOST]}"
         )
-        self._attr_icon = "mdi:sprout"
 
     @property
     def available(self) -> bool:
@@ -120,7 +118,6 @@ class XeniaSteamBoilerSwitch(XeniaEntity, SwitchEntity):
             f"{XENIA_DOMAIN}_steam_boiler_power_"
             f"{coordinator.config_entry.data[CONF_HOST]}"
         )
-        self._attr_icon = "mdi:kettle-steam"
 
     @property
     def available(self) -> bool:

@@ -30,7 +30,7 @@
       }),
     }),
     'original_device_class': <SensorDeviceClass.TEMPERATURE: 'temperature'>,
-    'original_icon': 'mdi:thermometer-water',
+    'original_icon': None,
     'original_name': 'Brewboiler temperature',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -46,7 +46,6 @@
     'attributes': ReadOnlyDict({
       'device_class': 'temperature',
       'friendly_name': 'Xenia Espresso Machine Brewboiler temperature',
-      'icon': 'mdi:thermometer-water',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
     }),
@@ -89,7 +88,7 @@
       }),
     }),
     'original_device_class': <SensorDeviceClass.TEMPERATURE: 'temperature'>,
-    'original_icon': 'mdi:thermometer',
+    'original_icon': None,
     'original_name': 'Brewgroup temperature',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -105,7 +104,6 @@
     'attributes': ReadOnlyDict({
       'device_class': 'temperature',
       'friendly_name': 'Xenia Espresso Machine Brewgroup temperature',
-      'icon': 'mdi:thermometer',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
     }),
@@ -148,7 +146,7 @@
       }),
     }),
     'original_device_class': <SensorDeviceClass.CURRENT: 'current'>,
-    'original_icon': 'mdi:current-ac',
+    'original_icon': None,
     'original_name': 'Electric current',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -164,7 +162,6 @@
     'attributes': ReadOnlyDict({
       'device_class': 'current',
       'friendly_name': 'Xenia Espresso Machine Electric current',
-      'icon': 'mdi:current-ac',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': <UnitOfElectricCurrent.AMPERE: 'A'>,
     }),
@@ -204,7 +201,7 @@
     'options': dict({
     }),
     'original_device_class': None,
-    'original_icon': 'mdi:coffee-to-go',
+    'original_icon': None,
     'original_name': 'Extractions',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -219,7 +216,6 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'friendly_name': 'Xenia Espresso Machine Extractions',
-      'icon': 'mdi:coffee-to-go',
       'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
     }),
     'context': <ANY>,
@@ -261,7 +257,7 @@
       }),
     }),
     'original_device_class': <SensorDeviceClass.DURATION: 'duration'>,
-    'original_icon': 'mdi:clock-outline',
+    'original_icon': None,
     'original_name': 'Operating hours',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -277,7 +273,6 @@
     'attributes': ReadOnlyDict({
       'device_class': 'duration',
       'friendly_name': 'Xenia Espresso Machine Operating hours',
-      'icon': 'mdi:clock-outline',
       'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       'unit_of_measurement': <UnitOfTime.HOURS: 'h'>,
     }),
@@ -320,7 +315,7 @@
       }),
     }),
     'original_device_class': <SensorDeviceClass.PRESSURE: 'pressure'>,
-    'original_icon': 'mdi:gauge',
+    'original_icon': None,
     'original_name': 'Pump pressure',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -336,7 +331,6 @@
     'attributes': ReadOnlyDict({
       'device_class': 'pressure',
       'friendly_name': 'Xenia Espresso Machine Pump pressure',
-      'icon': 'mdi:gauge',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': <UnitOfPressure.BAR: 'bar'>,
     }),
@@ -433,7 +427,7 @@
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.ENUM: 'enum'>,
-    'original_icon': 'mdi:coffee-maker',
+    'original_icon': None,
     'original_name': 'Status',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -449,7 +443,6 @@
     'attributes': ReadOnlyDict({
       'device_class': 'enum',
       'friendly_name': 'Xenia Espresso Machine Status',
-      'icon': 'mdi:coffee-maker',
       'options': list([
         'off',
         'on',
@@ -497,7 +490,7 @@
       }),
     }),
     'original_device_class': <SensorDeviceClass.PRESSURE: 'pressure'>,
-    'original_icon': 'mdi:gauge-full',
+    'original_icon': None,
     'original_name': 'Steamboiler pressure',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -513,7 +506,6 @@
     'attributes': ReadOnlyDict({
       'device_class': 'pressure',
       'friendly_name': 'Xenia Espresso Machine Steamboiler pressure',
-      'icon': 'mdi:gauge-full',
       'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
       'unit_of_measurement': <UnitOfPressure.BAR: 'bar'>,
     }),
@@ -556,7 +548,7 @@
       }),
     }),
     'original_device_class': <SensorDeviceClass.ENERGY: 'energy'>,
-    'original_icon': 'mdi:lightning-bolt',
+    'original_icon': None,
     'original_name': 'Total energy',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -572,7 +564,6 @@
     'attributes': ReadOnlyDict({
       'device_class': 'energy',
       'friendly_name': 'Xenia Espresso Machine Total energy',
-      'icon': 'mdi:lightning-bolt',
       'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
       'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),

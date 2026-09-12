@@ -103,7 +103,6 @@ class ScriptSelect(XeniaEntity, SelectEntity):
     """Select entity for choosing a script to execute."""
 
     _attr_translation_key = "script"
-    _attr_icon = "mdi:script-text"
 
     def __init__(self, coordinator: XeniaDataUpdateCoordinator) -> None:
         """Initialize the select entity."""
@@ -143,7 +142,6 @@ class SwitchConfigSelect(XeniaEntity, SelectEntity):
     """Select entity for configuring a physical switch."""
 
     _attr_entity_category = EntityCategory.CONFIG
-    _attr_icon = "mdi:gesture-tap-button"
 
     def __init__(
         self,

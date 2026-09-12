@@ -26,7 +26,6 @@ class XeniaExecuteScriptButton(XeniaEntity, ButtonEntity):
     """Button to execute the selected script."""
 
     _attr_translation_key = "execute_script"
-    _attr_icon = "mdi:play"
 
     def __init__(self, coordinator: XeniaDataUpdateCoordinator) -> None:
         """Initialize the button."""

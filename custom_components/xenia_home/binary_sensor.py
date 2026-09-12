@@ -35,7 +35,6 @@ class XeniaWaterTankSensor(XeniaEntity, BinarySensorEntity):
             f"{coordinator.config_entry.data[CONF_HOST]}_water_tank_empty"
         )
         self._attr_device_class = BinarySensorDeviceClass.PROBLEM
-        self._attr_icon = "mdi:water-off"
 
     @property
     def is_on(self) -> bool:

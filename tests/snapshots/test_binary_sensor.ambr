@@ -25,7 +25,7 @@
     'options': dict({
     }),
     'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
-    'original_icon': 'mdi:water-off',
+    'original_icon': None,
     'original_name': 'Water tank empty',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -41,7 +41,6 @@
     'attributes': ReadOnlyDict({
       'device_class': 'problem',
       'friendly_name': 'Xenia Espresso Machine Water tank empty',
-      'icon': 'mdi:water-off',
     }),
     'context': <ANY>,
     'entity_id': 'binary_sensor.xenia_espresso_machine_water_tank_empty',

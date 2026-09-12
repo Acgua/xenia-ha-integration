@@ -33,7 +33,7 @@
     'options': dict({
     }),
     'original_device_class': None,
-    'original_icon': 'mdi:gesture-tap-button',
+    'original_icon': None,
     'original_name': 'Left switch left long',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -48,7 +48,6 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'friendly_name': 'Xenia Espresso Machine Left switch left long',
-      'icon': 'mdi:gesture-tap-button',
       'options': list([
         'None',
         'Espresso',
@@ -99,7 +98,7 @@
     'options': dict({
     }),
     'original_device_class': None,
-    'original_icon': 'mdi:gesture-tap-button',
+    'original_icon': None,
     'original_name': 'Left switch left short',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -114,7 +113,6 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'friendly_name': 'Xenia Espresso Machine Left switch left short',
-      'icon': 'mdi:gesture-tap-button',
       'options': list([
         'None',
         'Espresso',
@@ -224,7 +222,7 @@
     'options': dict({
     }),
     'original_device_class': None,
-    'original_icon': 'mdi:gesture-tap-button',
+    'original_icon': None,
     'original_name': 'Right switch left long',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -239,7 +237,6 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'friendly_name': 'Xenia Espresso Machine Right switch left long',
-      'icon': 'mdi:gesture-tap-button',
       'options': list([
         'None',
         'Espresso',
@@ -290,7 +287,7 @@
     'options': dict({
     }),
     'original_device_class': None,
-    'original_icon': 'mdi:gesture-tap-button',
+    'original_icon': None,
     'original_name': 'Right switch left short',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -305,7 +302,6 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'friendly_name': 'Xenia Espresso Machine Right switch left short',
-      'icon': 'mdi:gesture-tap-button',
       'options': list([
         'None',
         'Espresso',
@@ -356,7 +352,7 @@
     'options': dict({
     }),
     'original_device_class': None,
-    'original_icon': 'mdi:gesture-tap-button',
+    'original_icon': None,
     'original_name': 'Right switch right long',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -371,7 +367,6 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'friendly_name': 'Xenia Espresso Machine Right switch right long',
-      'icon': 'mdi:gesture-tap-button',
       'options': list([
         'None',
         'Espresso',
@@ -422,7 +417,7 @@
     'options': dict({
     }),
     'original_device_class': None,
-    'original_icon': 'mdi:gesture-tap-button',
+    'original_icon': None,
     'original_name': 'Right switch right short',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -437,7 +432,6 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'friendly_name': 'Xenia Espresso Machine Right switch right short',
-      'icon': 'mdi:gesture-tap-button',
       'options': list([
         'None',
         'Espresso',
@@ -488,7 +482,7 @@
     'options': dict({
     }),
     'original_device_class': None,
-    'original_icon': 'mdi:script-text',
+    'original_icon': None,
     'original_name': 'Script',
     'platform': 'xenia_home',
     'previous_unique_id': None,
@@ -503,7 +497,6 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'friendly_name': 'Xenia Espresso Machine Script',
-      'icon': 'mdi:script-text',
       'options': list([
         'None',
         'Espresso',

@@ -54,7 +54,7 @@ Tracks compliance with the [Home Assistant integration quality scale](https://de
 - [ ] `entity-disabled-by-default` - Integration disables less popular (or noisy) entities
 - [ ] `entity-translations` - Entities have translated names
 - [ ] `exception-translations` - Exception messages are translatable
-- [ ] `icon-translations` - Entities implement icon translations
+- [x] `icon-translations` - Entities implement icon translations
 - [ ] `reconfiguration-flow` - Integrations should have a reconfigure flow
 - [ ] `repair-issues` - Repair issues and repair flows are used when user intervention is needed
 - [ ] `stale-devices` - Stale devices are removed

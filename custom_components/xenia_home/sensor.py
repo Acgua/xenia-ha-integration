@@ -61,7 +61,6 @@ SENSOR_TYPES: Final[tuple[XeniaSensorEntityDescription, ...]] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:thermometer",
         value_fn=lambda data: data.overview.bg_sens_temp_a,
     ),
     XeniaSensorEntityDescription(
@@ -70,7 +69,6 @@ SENSOR_TYPES: Final[tuple[XeniaSensorEntityDescription, ...]] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:thermometer-water",
         value_fn=lambda data: data.overview.bb_sens_temp_a,
     ),
     XeniaSensorEntityDescription(
@@ -79,7 +77,6 @@ SENSOR_TYPES: Final[tuple[XeniaSensorEntityDescription, ...]] = (
         native_unit_of_measurement=UnitOfPressure.BAR,
         device_class=SensorDeviceClass.PRESSURE,
         state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:gauge",
         value_fn=lambda data: data.overview.pu_sens_press,
     ),
     XeniaSensorEntityDescription(
@@ -88,7 +85,6 @@ SENSOR_TYPES: Final[tuple[XeniaSensorEntityDescription, ...]] = (
         native_unit_of_measurement=UnitOfPressure.BAR,
         device_class=SensorDeviceClass.PRESSURE,
         state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:gauge-full",
         value_fn=lambda data: data.overview.sb_sens_press,
     ),
     XeniaSensorEntityDescription(
@@ -97,7 +93,6 @@ SENSOR_TYPES: Final[tuple[XeniaSensorEntityDescription, ...]] = (
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         device_class=SensorDeviceClass.CURRENT,
         state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:current-ac",
         value_fn=lambda data: data.overview.ma_cur_pwr,
     ),
     XeniaSensorEntityDescription(
@@ -106,14 +101,12 @@ SENSOR_TYPES: Final[tuple[XeniaSensorEntityDescription, ...]] = (
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        icon="mdi:lightning-bolt",
         value_fn=lambda data: data.overview.ma_energy_total_kwh,
     ),
     XeniaSensorEntityDescription(
         key="extractions",
         translation_key="extractions",
         state_class=SensorStateClass.TOTAL_INCREASING,
-        icon="mdi:coffee-to-go",
         value_fn=lambda data: data.overview.ma_extractions,
     ),
     XeniaSensorEntityDescription(
@@ -122,7 +115,6 @@ SENSOR_TYPES: Final[tuple[XeniaSensorEntityDescription, ...]] = (
         native_unit_of_measurement=UnitOfTime.HOURS,
         device_class=SensorDeviceClass.DURATION,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        icon="mdi:clock-outline",
         value_fn=lambda data: data.overview.ma_operating_hours / 60,
     ),
     XeniaSensorEntityDescription(
@@ -130,7 +122,6 @@ SENSOR_TYPES: Final[tuple[XeniaSensorEntityDescription, ...]] = (
         translation_key="scale_flow_rate",
         native_unit_of_measurement="g/s",
         state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:scale",
         value_fn=lambda data: data.overview.pu_sens_scale_rate,
         exists_fn=lambda data: data.overview.pu_sens_scale_rate is not None,
     ),
@@ -143,7 +134,6 @@ SENSOR_TYPES: Final[tuple[XeniaSensorEntityDescription, ...]] = (
             for status in MachineStatus
             if status is not MachineStatus.UNKNOWN
         ],
-        icon="mdi:coffee-maker",
         value_fn=lambda data: (
             None
             if data.overview.ma_status is MachineStatus.UNKNOWN

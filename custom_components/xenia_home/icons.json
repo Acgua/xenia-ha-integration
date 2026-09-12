@@ -1,0 +1,79 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "water_tank_empty": {
+        "default": "mdi:water",
+        "state": {
+          "on": "mdi:water-off"
+        }
+      }
+    },
+    "button": {
+      "execute_script": {
+        "default": "mdi:play"
+      }
+    },
+    "select": {
+      "power_on_behavior": {
+        "default": "mdi:power-settings"
+      },
+      "script": {
+        "default": "mdi:script-text"
+      },
+      "switch_left_short": {
+        "default": "mdi:gesture-tap-button"
+      },
+      "switch_left_long": {
+        "default": "mdi:gesture-tap-button"
+      },
+      "switch_right_left_short": {
+        "default": "mdi:gesture-tap-button"
+      },
+      "switch_right_left_long": {
+        "default": "mdi:gesture-tap-button"
+      },
+      "switch_right_right_short": {
+        "default": "mdi:gesture-tap-button"
+      },
+      "switch_right_right_long": {
+        "default": "mdi:gesture-tap-button"
+      }
+    },
+    "sensor": {
+      "brew_boiler_temperature": {
+        "default": "mdi:thermometer-water"
+      },
+      "steam_boiler_pressure": {
+        "default": "mdi:gauge-full"
+      },
+      "extractions": {
+        "default": "mdi:coffee-to-go"
+      },
+      "operating_hours": {
+        "default": "mdi:clock-outline"
+      },
+      "scale_flow_rate": {
+        "default": "mdi:scale"
+      },
+      "status": {
+        "default": "mdi:coffee-maker",
+        "state": {
+          "off": "mdi:coffee-maker-outline",
+          "eco": "mdi:sprout",
+          "brewing": "mdi:coffee"
+        }
+      }
+    },
+    "switch": {
+      "power": {
+        "default": "mdi:coffee-maker"
+      },
+      "eco_mode": {
+        "default": "mdi:sprout"
+      },
+      "steam_boiler_power": {
+        "default": "mdi:kettle-steam"
+      }
+    }
+  }
+}
