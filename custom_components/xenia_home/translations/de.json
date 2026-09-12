@@ -121,6 +121,9 @@
           "draining": "Entleert",
           "unknown": "Unbekannt"
         }
+      },
+      "shot_start_time": {
+        "name": "Bezugsstart"
       }
     },
     "number": {

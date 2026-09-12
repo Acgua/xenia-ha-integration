@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Final
 
 from homeassistant.components.sensor import (
@@ -38,7 +39,7 @@ PARALLEL_UPDATES = 0
 class XeniaEntityDescriptionMixinSensor:
     """Mixin adding a value extractor to a sensor description."""
 
-    value_fn: Callable[[XeniaCoordinatorData], StateType]
+    value_fn: Callable[[XeniaCoordinatorData], StateType | datetime]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -141,6 +142,12 @@ SENSOR_TYPES: Final[tuple[XeniaSensorEntityDescription, ...]] = (
         icon="mdi:coffee-maker",
         value_fn=lambda data: data.overview.ma_status.name.lower(),
     ),
+    XeniaSensorEntityDescription(
+        key="shot_start_time",
+        translation_key="shot_start_time",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=lambda data: data.shot_start_time,
+    ),
 )
 
 
@@ -174,7 +181,7 @@ class XeniaSensor(XeniaEntity, SensorEntity):
         )
 
     @property
-    def native_value(self) -> StateType:
+    def native_value(self) -> StateType | datetime:
         """Return the sensor value, or None for zeroed cumulative counters."""
         value = self.entity_description.value_fn(self.coordinator.data)
         if (

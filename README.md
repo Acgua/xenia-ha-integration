@@ -109,6 +109,7 @@ reason to.
 - Scale flow rate sensor (g/s) on firmware that reports it
 - Water tank level monitoring
 - Machine status sensor (off/on/eco/brewing/draining/unknown)
+- Shot start time sensor, set while a shot is brewing (an entities card row with `time_format: total` shows a live shot timer; the shot tracker event carries the final `duration_seconds`)
 - Trigger any on-device script from Home Assistant (by ID or by name)
 - Map each of the six physical switch positions to a script
 - Shot tracking with per-shot temperature, pressure, flow rate, and final weight

@@ -121,6 +121,9 @@
           "draining": "Draining",
           "unknown": "Unknown"
         }
+      },
+      "shot_start_time": {
+        "name": "Shot start time"
       }
     },
     "number": {
