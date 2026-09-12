@@ -117,7 +117,7 @@ class XeniaShotTracker(XeniaEntity, EventEntity):
 
     def _start_shot_tracking(self) -> None:
         """Start tracking a new shot."""
-        self._shot_start_time = dt_util.utcnow()
+        self._shot_start_time = self.coordinator.data.shot_start_time
         self._brew_end_time = None
         self._brew_group_temps = []
         self._brew_boiler_temps = []

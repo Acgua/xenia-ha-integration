@@ -1,12 +1,12 @@
 """Tests for event.py — XeniaShotTracker and ShotData."""
 
 from datetime import timedelta
+from unittest.mock import AsyncMock, patch
 
 from homeassistant.helpers.entity_component import DATA_INSTANCES
 from homeassistant.util import dt as dt_util
 import pytest
 
-from custom_components.xenia_home.coordinator import XeniaCoordinatorData
 from custom_components.xenia_home.event import ShotData
 from custom_components.xenia_home.xenia import MachineStatus, XeniaOverviewData
 from tests.fixtures.api_responses import OVERVIEW_PAYLOAD
@@ -87,14 +87,13 @@ def _get_tracker(hass, init_integration):
 
 
 async def _drive_overview(hass, mock_xenia_api, init_integration, **fields):
-    """Push overview field overrides through the coordinator."""
+    """Let the coordinator poll an overview with the given field overrides."""
     coordinator = init_integration.runtime_data.coordinator
-    new_overview = XeniaOverviewData.from_dict({**mock_xenia_api._overview, **fields})
-    new_data = XeniaCoordinatorData(
-        overview=new_overview,
-        overview_single=coordinator.data.overview_single,
-    )
-    coordinator.async_set_updated_data(new_data)
+    overview = XeniaOverviewData.from_dict({**mock_xenia_api._overview, **fields})
+    with patch.object(
+        coordinator.xenia, "get_overview", AsyncMock(return_value=overview)
+    ):
+        await coordinator.async_refresh()
     await hass.async_block_till_done()
 
 
@@ -145,16 +144,19 @@ async def test_tracker_cancels_afterflow_on_new_brew(
 # ===========================================================================
 
 
-async def test_start_shot_tracking_clears_lists(hass, init_integration):
+async def test_new_shot_starts_with_empty_curves(
+    hass, init_integration, mock_xenia_api
+):
     tracker = _get_tracker(hass, init_integration)
     tracker._brew_group_temps = [1.0, 2.0]
     tracker._timestamps = [0.5, 1.5]
     tracker._brew_end_time = dt_util.utcnow()
-    tracker._start_shot_tracking()
+    await _drive_status(hass, mock_xenia_api, init_integration, MachineStatus.BREWING)
     assert tracker._brew_group_temps == []
     assert tracker._timestamps == []
     assert tracker._brew_end_time is None
-    assert tracker._shot_start_time is not None
+    coordinator = init_integration.runtime_data.coordinator
+    assert tracker._shot_start_time == coordinator.data.shot_start_time
 
 
 async def test_start_afterflow_does_not_reset_if_already_active(hass, init_integration):
