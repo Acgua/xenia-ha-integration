@@ -131,6 +131,20 @@ async def test_corrupt_index_is_tolerated(hass):
     assert [s["shot_id"] for s in store.list_shots()] == [payload["start_time"]]
 
 
+async def test_malformed_index_starts_empty(hass, hass_storage):
+    hass_storage[f"{XENIA_DOMAIN}/{ENTRY_ID}.shots_index"] = {
+        "version": 1,
+        "data": {"bogus": 1},
+    }
+    store = await _loaded_store(hass)
+    assert store.list_shots() == []
+    assert store.migrated is False
+
+    payload = shot_payload()
+    await store.async_add_shot(payload)
+    assert [s["shot_id"] for s in store.list_shots()] == [payload["start_time"]]
+
+
 async def test_corrupt_chunk_is_tolerated(hass):
     store = await _loaded_store(hass)
     payload = shot_payload()

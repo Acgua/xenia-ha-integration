@@ -47,8 +47,14 @@ class XeniaShotStore:
         except HomeAssistantError as err:
             _LOGGER.error("Shot history unreadable, starting empty: %s", err)
             return
-        if data is not None:
-            self._index = data
+        if data is None:
+            return
+        if not isinstance(data.get("shots"), list):
+            _LOGGER.error(
+                "Shot index %s is malformed, starting empty", self._index_store.path
+            )
+            return
+        self._index = data
 
     def _flat_store(self, suffix: str) -> Store[dict[str, Any]]:
         # Key layout used up to v0.7.0-beta.1.
@@ -103,8 +109,8 @@ class XeniaShotStore:
         if month not in self._chunks:
             try:
                 loaded = await self._chunk_store(month).async_load() or {}
-            except Exception:
-                _LOGGER.exception("Shot chunk %s unreadable; treating as empty", month)
+            except HomeAssistantError as err:
+                _LOGGER.error("Shot chunk unreadable, treating as empty: %s", err)
                 loaded = {}
             # A concurrent add for the same month may have already populated
             # this from a fresh save; keep that winner instead of overwriting
