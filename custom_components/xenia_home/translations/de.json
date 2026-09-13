@@ -13,6 +13,10 @@
           "description": "Der Name des auszuführenden Skripts. Wird ignoriert, wenn eine Skript-ID angegeben ist."
         }
       }
+    },
+    "stop_script": {
+      "name": "Skript stoppen",
+      "description": "Stoppt das aktuell laufende Skript auf der Xenia Espressomaschine."
     }
   },
   "config": {
@@ -185,6 +189,9 @@
     "button": {
       "execute_script": {
         "name": "Skript ausführen"
+      },
+      "stop_script": {
+        "name": "Skript stoppen"
       }
     },
     "event": {

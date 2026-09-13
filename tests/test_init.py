@@ -11,6 +11,7 @@ from custom_components.xenia_home import (
     ATTR_SCRIPT_ID,
     ATTR_SCRIPT_NAME,
     SERVICE_EXECUTE_SCRIPT,
+    SERVICE_STOP_SCRIPT,
 )
 from custom_components.xenia_home.const import CONF_POLL_IDLE, XENIA_DOMAIN
 from custom_components.xenia_home.shot_store import XeniaShotStore
@@ -29,6 +30,10 @@ async def test_async_setup_entry_loads_integration(init_integration):
 
 async def test_integration_registers_execute_script_service(hass, init_integration):
     assert hass.services.has_service(XENIA_DOMAIN, SERVICE_EXECUTE_SCRIPT)
+
+
+async def test_integration_registers_stop_script_service(hass, init_integration):
+    assert hass.services.has_service(XENIA_DOMAIN, SERVICE_STOP_SCRIPT)
 
 
 async def test_runtime_data_holds_both_coordinators(hass, init_integration):
@@ -118,6 +123,31 @@ async def test_execute_script_id_takes_priority_over_name(
     await hass.async_block_till_done()
     # ID 2 (Espresso endless) wins over name MyShot (would be 10)
     mock_xenia_api.assert_post_called_with("scripts/execute", "2")
+
+
+# ===========================================================================
+# stop_script service — no fields, just proxies to xenia.stop_script()
+# ===========================================================================
+
+
+async def test_stop_script_calls_xenia(hass, init_integration, mock_xenia_api):
+    mock_xenia_api.expect_stop_script()
+    await hass.services.async_call(
+        XENIA_DOMAIN, SERVICE_STOP_SCRIPT, {}, blocking=True
+    )
+    await hass.async_block_till_done()
+    assert mock_xenia_api.get_count("scripts/stop") == 1
+
+
+async def test_stop_script_with_no_loaded_entry_raises_validation_error(
+    hass, init_integration
+):
+    await hass.config_entries.async_unload(init_integration.entry_id)
+    await hass.async_block_till_done()
+    with pytest.raises(ServiceValidationError, match="No Xenia config entry"):
+        await hass.services.async_call(
+            XENIA_DOMAIN, SERVICE_STOP_SCRIPT, {}, blocking=True
+        )
 
 
 # ===========================================================================

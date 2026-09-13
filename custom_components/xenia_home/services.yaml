@@ -16,3 +16,7 @@ execute_script:
       example: "My Script"
       selector:
         text:
+
+stop_script:
+  name: Stop script
+  description: Stop the script currently running on the Xenia espresso machine.

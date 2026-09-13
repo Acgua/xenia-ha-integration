@@ -13,6 +13,10 @@
           "description": "The name of the script to execute. Ignored if script ID is provided."
         }
       }
+    },
+    "stop_script": {
+      "name": "Stop script",
+      "description": "Stop the script currently running on the Xenia espresso machine."
     }
   },
   "config": {
@@ -185,6 +189,9 @@
     "button": {
       "execute_script": {
         "name": "Execute script"
+      },
+      "stop_script": {
+        "name": "Stop script"
       }
     },
     "event": {

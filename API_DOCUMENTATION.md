@@ -282,6 +282,35 @@ Executes a script by ID.
 
 ---
 
+### `/api/v2/scripts/stop`
+
+Stops the script currently running on the machine. Not listed under
+https://www.xenia-espresso.de/api.html (which does not cover scripts at
+all) — only documented via the Object Pascal example on
+https://www.xenia-espresso.de/api-beispiel/:
+
+```pascal
+http.get('http://'+sipAdresse+'/api/v2/scripts/stop');
+```
+
+**Method:** GET, no parameters/body.
+
+**Response:**
+```json
+{"B": false}
+```
+
+Confirmed reliable in live testing: called both while idle (no script
+running) and twice while a script was actively brewing — in all three
+cases the machine responded `200 OK` with the same `{"B": false}` body,
+and in the two "while brewing" cases the brew genuinely stopped. The `B`
+field's meaning is unclear — it did not vary between the idle and
+actively-stopped cases, so it does not appear to indicate whether a
+script was actually running/stopped. Treat it as unreliable and rely on
+the HTTP status / `MA_STATUS` instead if you need to confirm effect.
+
+---
+
 ### `/api/v2/switches`
 
 **GET** — Returns switch-to-script mappings.

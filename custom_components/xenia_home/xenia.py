@@ -316,6 +316,18 @@ class Xenia:
         data = f'{{"ID":{script_id}}}'
         await self._post("scripts/execute", data)
 
+    async def stop_script(self) -> None:
+        """Stop the currently running script.
+
+        Per the documented Object Pascal example on xenia-espresso.de
+        (https://www.xenia-espresso.de/api-beispiel/), this is a plain GET
+        with no body/parameters — it stops whatever script is currently
+        running, there is no script_id to target.
+        """
+        url = f"http://{self._host}/api/v2/scripts/stop"
+        async with self._session.get(url, timeout=ClientTimeout(total=5)) as resp:
+            resp.raise_for_status()
+
     async def get_switches(self) -> dict[str, int]:
         """Get switch-to-script mappings."""
         url = f"http://{self._host}/api/v2/switches"
