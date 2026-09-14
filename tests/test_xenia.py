@@ -371,6 +371,12 @@ async def test_redirected_post_raises(mock_api, xenia) -> None:
         await xenia.sb_turn_on()
 
 
+async def test_redirected_get_raises(mock_api, xenia) -> None:
+    mock_api.get(f"{BASE}/overview", status=301, headers={"Location": "/index.html"})
+    with pytest.raises(ClientResponseError):
+        await xenia.get_overview()
+
+
 # ===========================================================================
 # Temperature setters
 # ===========================================================================

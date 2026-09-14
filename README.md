@@ -208,18 +208,11 @@ data:
   script_name: "Espresso 18g"
 ```
 
-### Action: `xenia_home.stop_script`
-
-Stop the script currently running on the machine. Takes no fields — the
-machine's `/api/v2/scripts/stop` endpoint has no concept of a script ID,
-it just stops whatever is running. A "Stop script" button entity is also
-available for use directly on a dashboard.
-
-Example automation step:
-
-```yaml
-action: xenia_home.stop_script
-```
+To stop whatever script is currently running, press the "Stop script"
+button entity — from a dashboard, or via `button.press` in an automation.
+There's no dedicated action for it: the machine's stop endpoint takes no
+script ID, so `button.press` on the entity does the same thing a service
+would.
 
 ## Weight management
 

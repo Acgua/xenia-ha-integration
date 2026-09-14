@@ -25,7 +25,6 @@ from .xenia import Xenia
 _LOGGER = logging.getLogger(__name__)
 
 SERVICE_EXECUTE_SCRIPT = "execute_script"
-SERVICE_STOP_SCRIPT = "stop_script"
 ATTR_SCRIPT_ID = "script_id"
 ATTR_SCRIPT_NAME = "script_name"
 
@@ -35,24 +34,6 @@ SERVICE_EXECUTE_SCRIPT_SCHEMA = vol.Schema(
         vol.Optional(ATTR_SCRIPT_NAME): str,
     }
 )
-
-
-def _first_loaded_xenia(hass: HomeAssistant) -> Xenia:
-    """Return the API client of the first loaded Xenia config entry.
-
-    Shared by execute_script and stop_script; both currently assume a
-    single relevant machine like the existing execute_script handler did.
-    """
-    entries = [
-        entry
-        for entry in hass.config_entries.async_entries(XENIA_DOMAIN)
-        if entry.state is ConfigEntryState.LOADED
-    ]
-    if not entries:
-        raise ServiceValidationError(
-            "No Xenia config entry is loaded; cannot control the machine"
-        )
-    return entries[0].runtime_data.coordinator.xenia
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -98,21 +79,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         SERVICE_EXECUTE_SCRIPT,
         handle_execute_script,
         schema=SERVICE_EXECUTE_SCRIPT_SCHEMA,
-    )
-
-    async def handle_stop_script(call: ServiceCall) -> None:
-        """Handle the stop_script service call.
-
-        No fields: the machine's /api/v2/scripts/stop endpoint takes no
-        parameters and stops whichever script is currently running.
-        """
-        xenia = _first_loaded_xenia(hass)
-        await xenia.stop_script()
-
-    hass.services.async_register(
-        XENIA_DOMAIN,
-        SERVICE_STOP_SCRIPT,
-        handle_stop_script,
     )
     return True
 

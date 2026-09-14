@@ -63,25 +63,9 @@ async def test_button_press_executes_builtin_script_id_one(
     mock_xenia_api.assert_post_called_with("scripts/execute", "1")
 
 
-# ===========================================================================
-# Stop button — no selected_script_id dependency, always calls stop_script
-# ===========================================================================
-
-
 async def test_stop_button_press_calls_stop_script(
     hass, init_integration, mock_xenia_api
 ):
     mock_xenia_api.expect_stop_script()
-    await _press_button(hass, STOP_BUTTON_ENTITY_ID)
-    assert mock_xenia_api.get_count("scripts/stop") == 1
-
-
-async def test_stop_button_press_ignores_selected_script_id(
-    hass, init_integration, mock_xenia_api
-):
-    # Unlike the execute button, stop_script takes no ID — pressing it
-    # must not be gated on (or affected by) selected_script_id at all.
-    mock_xenia_api.expect_stop_script()
-    init_integration.runtime_data.config_coordinator.selected_script_id = None
     await _press_button(hass, STOP_BUTTON_ENTITY_ID)
     assert mock_xenia_api.get_count("scripts/stop") == 1

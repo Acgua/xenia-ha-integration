@@ -48,12 +48,7 @@ class XeniaExecuteScriptButton(XeniaEntity, ButtonEntity):
 
 
 class XeniaStopScriptButton(XeniaEntity, ButtonEntity):
-    """Button to stop whichever script is currently running.
-
-    Unlike XeniaExecuteScriptButton, this does not depend on
-    config_coordinator.selected_script_id — the machine's stop endpoint
-    takes no script ID, it just stops whatever is currently running.
-    """
+    """Button to stop the currently running script."""
 
     _attr_translation_key = "stop_script"
 
